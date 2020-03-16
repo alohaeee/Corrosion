@@ -3,9 +3,9 @@
 #include "rxmap.hpp"
 #include "tokenid.hpp"
 
-namespace rustc
+namespace corrosion
 {
 //! @brief Alias declaration for the rustc token map.
 using TokenMap = RxMap<TokenID>;
-} // namespace rustc
+} // namespace corrosion
 #endif // LEXER_FWD_HPP

@@ -9,7 +9,7 @@
 
 #include "../config.hpp"
 #include "fwd.hpp"
-namespace rustc
+namespace corrosion
 {
 /**
  * @brief Lexer is class for parsing lexems to tokens.

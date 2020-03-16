@@ -10,7 +10,7 @@
 
 #include "../config.hpp"
 
-namespace rustc
+namespace corrosion
 {
 
 /**

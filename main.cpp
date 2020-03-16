@@ -1,10 +1,10 @@
 #include "lexer/fwd.hpp"
 #include "lexer/lexer.hpp"
-#include "lexer/numberliterals.hpp"
+#include "lexer/rustlexerspec.hpp"
 
 #include <iostream>
 
-using namespace rustc;
+using namespace corrosion;
 int main(int argc, char *argv[])
 {
     Lexer<TokenID> lexer{};
@@ -14,9 +14,9 @@ int main(int argc, char *argv[])
                                {"if", TokenID::KW_IF},
                                {"return", TokenID::KW_RETURN},
                                {"(true)|(false)", TokenID::BOOLEAN_LITERAL},
-                               {integer::DEC_LITERAL, TokenID::DEC_LITERAL},
-                               {"[+-]?([0-9]*[.])?[0-9]+", TokenID::DOUBLE},
-                               {"\"([^\\\\]|\\\\.)*\"", TokenID::STRING},
+                               {number_literals::DEC_LITERAL, TokenID::DEC_LITERAL},
+                               {"[+-]?([0-9]*[.])?[0-9]+", TokenID::FLOAT_LITERAL},
+                               {"\"([^\\\\]|\\\\.)*\"", TokenID::STRING_LITERAL},
                                {"[a-zA-Z_][a-zA-Z0-9_]*", TokenID::IDENTIFIER},
 
                            }});
@@ -43,11 +43,9 @@ int main(int argc, char *argv[])
                                {"//([^\n]*)(\n|$)", Lexer<TokenID>::IGNORE},
                                // ignore white space
                                {"[ \\n\\t\\r]", Lexer<TokenID>::IGNORE}}});
-    lexer.Lex(" +=s // sus \n /*  ds */ */ u8 i = \"dsds\"; float j = .031;  @@#(I@)  !SD while(!) ! (sus) { int i "
+    lexer.Lex(" +=s // sus //s \n /*  ds */ */ u8 i = \"dsds\"; float j = .031;  @@#(I@)  !SD while(!) ! (sus) { int i "
               "= 3432; return; }s");
 
     lexer.Log();
-
-    qDebug(qUtf8Printable(integer::INTEGER_LITERAL));
     return 0;
 }

@@ -2,10 +2,9 @@
 #define COMPILER_HPP
 
 #include "lexer/lexer.hpp"
-#include "lexer/numberliterals.hpp"
 #include "parser/parser.hpp"
 
-namespace rustc
+namespace corrosion
 {
 class Compiler
 {
@@ -51,5 +50,5 @@ public:
 private:
     Lexer<TokenID> m_lexer;
 };
-} // namespace rustc
+} // namespace corrosion
 #endif // COMPILER_HPP

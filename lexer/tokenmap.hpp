@@ -4,7 +4,7 @@
 #include "fwd.hpp"
 #include "tokenid.hpp"
 
-namespace rustc
+namespace corrosion
 {
 // inline TokenMap terminate{TokenID::UNKNOWN,
 //                          {

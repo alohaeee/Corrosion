@@ -25,11 +25,10 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 HEADERS += \
     compiler.hpp \
     config.hpp \
+    corrosion.hpp \
     lexer/fwd.hpp \
     lexer/lexer.hpp \
-    lexer/numberliterals.hpp \
+    lexer/rustlexerspec.hpp \
     lexer/rxmap.hpp \
     lexer/tokenid.hpp \
-    lexer/whitespaces.hpp \
-    parser/parser.hpp \
-    rustc.hpp
+    parser/parser.hpp
