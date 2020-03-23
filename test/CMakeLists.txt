@@ -31,6 +31,9 @@ endif()
 
 include_directories($<TARGET_PROPERTY:Corrosion::Core,INCLUDE_DIRECTORIES>)
 
+#
+# Function for setup basic test
+#
 function(SETUP_BASIC_TEST TEST_NAME TEST_SOURCES)
     add_executable(${TEST_NAME} ${TEST_SOURCES})
     target_link_libraries(${TEST_NAME} PRIVATE GTest::Main)
@@ -38,6 +41,9 @@ function(SETUP_BASIC_TEST TEST_NAME TEST_SOURCES)
     add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
 endfunction()
 
+#
+# Tests
+#
 SETUP_BASIC_TEST(LEXER lexer/lexer.cpp)
 
 

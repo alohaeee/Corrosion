@@ -10,7 +10,6 @@ namespace corrosion
 {
 class Compiler
 {
-    using constans = const QString;
     void InitLexer()
     {
         m_lexer.SetPackedTokens({TokenID::UNKNOWN,
@@ -61,6 +60,7 @@ public:
     {
         InitLexer();
     }
+    ~Compiler() = default;
     void Command(const int argc, char **argv)
     {
         QStringList list{};
@@ -106,7 +106,7 @@ public:
      * @brief Return lexer.
      * @return Compiler's lexer instance.
      */
-    auto &GetLexer() const CORROSION_NOEXCEPT
+    auto &GetLexer() CORROSION_NOEXCEPT
     {
         return m_lexer;
     }
