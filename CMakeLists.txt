@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.12.4)
 
 
 #
@@ -36,17 +36,21 @@ message("*")
 #
 include(GNUInstallDirs)
 
-add_executable(${PROJECT_NAME} src/main.cpp)
+add_library(Corrosion_Core src/main.cpp)
+add_library(Corrosion::Core ALIAS Corrosion_Core)
 
-target_include_directories(${PROJECT_NAME} PUBLIC "src/")
+target_include_directories(Corrosion_Core PUBLIC "${Corrosion_SOURCE_DIR}/src")
 
-target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
+target_compile_features(Corrosion_Core PUBLIC cxx_std_17)
+
+add_executable(Corrosion src/main.cpp)
+target_link_libraries(Corrosion Corrosion_Core)
 
 #
 # Qt core 
 #
 find_package(Qt5Core REQUIRED)
-qt5_use_modules(${PROJECT_NAME} Core)
+qt5_use_modules(Corrosion_Core Core)
 
 #
 # Tests
