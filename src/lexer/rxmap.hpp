@@ -9,6 +9,7 @@
 #include <utility>
 
 #include "../config.hpp"
+#include <iostream>
 
 namespace corrosion
 {
@@ -169,6 +170,7 @@ public:
             pattern.append('(' + key + ')' + '|');
         }
         m_regExp.setPattern(pattern.chopped(1));
+
         CORROSION_ASSERT(m_regExp.capturedTexts().size() - 1 == m_values.size());
     }
     /**
