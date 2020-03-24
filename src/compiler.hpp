@@ -2,6 +2,7 @@
 #define COMPILER_HPP
 
 #include "lexer/lexer.hpp"
+#include "lexer/rustlexerspec.hpp"
 #include "parser/parser.hpp"
 #include "utility/cexception.hpp"
 #include "utility/filesystem.hpp"
@@ -15,36 +16,60 @@ class Compiler
         m_lexer.SetPackedTokens({TokenID::UNKNOWN,
                                  {
                                      {"while", TokenID::KW_WHILE},
+                                     {"for", TokenID::KW_FOR},
+                                     {"continue", TokenID::KW_CONTINUE},
+                                     {"break", TokenID::KW_BREAK},
+                                     {"let", TokenID::KW_LET},
+                                     {"mut", TokenID::KW_MUT},
                                      {"if", TokenID::KW_IF},
                                      {"return", TokenID::KW_RETURN},
-                                     //{"[0-9]+", TokenID::INTEGER_LITERAL},
-                                     {"[+-]?([0-9]*[.])?[0-9]+", TokenID::FLOAT_LITERAL},
-                                     {"\"([^\\\\]|\\\\.)*\"", TokenID::STRING_LITERAL},
-                                     {"[a-zA-Z_][a-zA-Z0-9_]*", TokenID::IDENTIFIER},
+                                     {regexp::number_literals::INTEGER_LITERAL, TokenID::INTEGER_LITERAL},
+                                     {regexp::number_literals::FLOAT_LITERAL, TokenID::FLOAT_LITERAL},
+                                     {regexp::number_literals::BOOLEAN_LITERAL, TokenID::BOOLEAN_LITERAL},
+                                     {regexp::IDENTIFIER, TokenID::IDENTIFIER},
                                  }});
         m_lexer.SetTerminateTokens({TokenID::UNKNOWN,
                                     {{"\\(", TokenID::LPARENTHESIS},
                                      {"\\)", TokenID::RPARENTHESIS},
                                      {"\\{", TokenID::LBRACER},
                                      {"\\}", TokenID::RBRACER},
+                                     {"\\[", TokenID::LBRACKET},
+                                     {"\\]", TokenID::RBRACKET},
                                      {"=", TokenID::EQ},
                                      {";", TokenID::SEMI},
+                                     {":", TokenID::COLON},
                                      {"\\+", TokenID::PLUS},
                                      {"-", TokenID::MINUS},
                                      {"\\*", TokenID::STAR},
                                      {"/", TokenID::SLASH},
-                                     {"\\+=", TokenID::PLUS_EQ},
-                                     {"-=", TokenID::MINUS_EQ},
-                                     {"\\*=", TokenID::STAR_EQ},
-                                     {"/=", TokenID::SLASH_EQ},
-                                     {"\\++", TokenID::PLUS_PLUS},
-                                     {"--", TokenID::MINUS_MINUS},
+                                     {"\\+=", TokenID::PLUSEQ},
+                                     {"-=", TokenID::MINUSEQ},
+                                     {"\\*=", TokenID::STAREQ},
+                                     {"/=", TokenID::SLASHEQ},
+                                     {"\\&=", TokenID::ANDEQ},
+                                     {"\\|=", TokenID::OREQ},
+                                     {"\\&", TokenID::AND},
+                                     {"\\&\\&", TokenID::ANDAND},
+                                     {"\\|", TokenID::OR},
+                                     {"\\|\\|", TokenID::OROR},
+                                     {"!", TokenID::NOT},
+                                     {">>", TokenID::SHR},
+                                     {"<<", TokenID::SHL},
+                                     {">", TokenID::GT},
+                                     {"<", TokenID::LT},
+                                     {">=", TokenID::GT},
+                                     {"<=", TokenID::LE},
+                                     {"!=", TokenID::NE},
+
+                                     {regexp::string_literals::CHAR_LITERAL, TokenID::CHAR_LITERAL},
+                                     {regexp::string_literals::STRING_LITERAL, TokenID::STRING_LITERAL},
+
                                      // ignore multi line comments
-                                     {"(/\\*.*\\*/)", Lexer<TokenID>::IGNORE},
+                                     {regexp::comments::BLOCK_COMMENT, Lexer<TokenID>::IGNORE},
                                      // ignore line comment
-                                     {"//([^\n]*)(\n|$)", Lexer<TokenID>::IGNORE},
+                                     {regexp::comments::LINE_COMMENT, Lexer<TokenID>::IGNORE},
                                      // ignore white space
-                                     {"[ \\n\\t\\r]", Lexer<TokenID>::IGNORE}}});
+                                     {regexp::whitespaces::WHITESPACE_REG, Lexer<TokenID>::IGNORE}}});
     }
 
     enum class State
