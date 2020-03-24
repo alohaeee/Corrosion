@@ -25,10 +25,11 @@ class Lexer
         Type type;
     };
 
-    std::pair<int, Token> LongestTerminate(int begin)
+    std::pair<int, Token> LongestTerminate(const QString &text, int begin)
     {
         int result = 0;
-        auto type = m_terminates[m_text.mid(begin, m_text.size() - begin - 1)];
+
+        auto type = m_terminates[text.mid(begin, text.size() - begin)];
         auto captured = m_terminates.RegExp().cap();
         if (type == m_terminates.Unknown())
         {
@@ -57,45 +58,48 @@ public:
     virtual void Lex(const QString &text)
     {
         CORROSION_ASSERT(m_terminates.Data().size() && m_packeds.Data().size());
-        m_text = text;
-        for (int begin = 0; begin < m_text.size(); begin++)
+
+        for (int end = 0, begin = 0; end < text.size(); end++)
         {
-            auto [result, token] = LongestTerminate(begin);
+            auto [result, token] = LongestTerminate(text, end);
             if (result)
             {
                 if (token.type != IGNORE)
                 {
                     m_queue.push_back(token);
                 }
-                begin += result - 1;
-            }
-            else
-            {
-                int end = begin + 1;
-                for (; end < m_text.size(); end++)
-                {
-                    auto [result, token] = LongestTerminate(end);
-                    if (result)
-                    {
-                        auto lexem = m_text.mid(begin, end - begin);
 
+                if (end != 0)
+                {
+                    auto lexem = text.mid(begin, end - begin);
+
+                    if (!lexem.isEmpty())
+                    {
                         auto [cap, type] = m_packeds.Exact(lexem);
                         if (type != IGNORE)
                         {
                             m_queue.push_back({lexem, type});
                         }
-                        if (token.type != IGNORE)
-                        {
-                            m_queue.push_back(token);
-                        }
-
-                        break;
                     }
                 }
-                begin += result + end - begin;
+
+                end += result - 1;
+                begin = end + 1;
+            }
+            else if (end == text.size() - 1)
+            {
+                auto lexem = text.mid(begin, end - begin + 1);
+
+                if (!lexem.isEmpty())
+                {
+                    auto [cap, type] = m_packeds.Exact(lexem);
+                    if (type != IGNORE)
+                    {
+                        m_queue.push_back({lexem, type});
+                    }
+                }
             }
         }
-        m_text.clear();
     }
 
     /**
@@ -153,9 +157,20 @@ public:
      */
     void Log() const CORROSION_NOEXCEPT
     {
-        foreach (auto &token, m_queue)
+        for (auto &token : m_queue)
         {
             qDebug(qUtf8Printable(token.lexem + " - " + QString::number((int)token.type)));
+        }
+    }
+
+    /**
+     * @brief Log into stdcerr "{lexem} - {type}" for each lexem.
+     */
+    void LogErr() const CORROSION_NOEXCEPT
+    {
+        for (auto &token : m_queue)
+        {
+            std::cerr << QString(token.lexem + " - " + QString::number((int)token.type)).toStdString() << std::endl;
         }
     }
     /**
@@ -176,10 +191,9 @@ public:
     }
 
 protected:
-    QString m_text{};
     QQueue<Token> m_queue{};
-    TokenMap m_terminates{};
-    TokenMap m_packeds{};
+    RxMap<Type> m_terminates{};
+    RxMap<Type> m_packeds{};
 }; // namespace rustc
 
 } // namespace corrosion
