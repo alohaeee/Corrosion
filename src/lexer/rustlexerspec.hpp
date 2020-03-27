@@ -32,8 +32,8 @@ namespace regexp
         constexpr const auto BIN_DIGIT = "[0-1]";
         const QString HEX_LITERAL = QString("0x(%1|_)*%1(%1|_)*").arg(HEX_DIGIT);
         const QString OCT_LITERAL = QString("0o(%1|_)*%1(%1|_)*").arg(OCT_DIGIT);
-        const QString BIN_LITERAL = QString("0o(%1|_)*%1(%1|_)*").arg(BIN_DIGIT);
-        const QString TUPLE_INDEX = QString("0|%1%2*").arg(NON_ZERO_DEC_DIGIT).arg(DEC_DIGIT);
+        const QString BIN_LITERAL = QString("0b(%1|_)*%1(%1|_)*").arg(BIN_DIGIT);
+        const QString TUPLE_INDEX = QString("0|%1(%2)*").arg(NON_ZERO_DEC_DIGIT).arg(DEC_DIGIT);
         const QString DEC_LITERAL = QString("%1(%1|_)*").arg(DEC_DIGIT);
         constexpr const auto INTEGER_SUFFIX =
             "(u8)|(u16)|(u32)|(u64)|(u128)|(usize)|(i8)|(i16)|(i32)|(i64)|(i128)|(isize)";
@@ -47,11 +47,17 @@ namespace regexp
         /**
          * @brief Floating point literals from rust spec:
          * @link https://doc.rust-lang.org/reference/tokens.html#floating-point-literals @endlink
+         * @note Float Exponent are not implemented.
          */
 
         constexpr const auto FLOAT_SUFFIX = "(f32)|(f64)";
-        const QString FLOAT_EXPONENT = QString("(e|E)(+|-)?(%1|_)*%1(%1|_)*").arg(DEC_LITERAL);
-        constexpr const auto FLOAT_LITERAL = "[+-]?([0-9]*[.])?[0-9]+";
+        const QString FLOAT_LITERAL = QString("(%1\\.)|(%1\\.%1)|(%1(\\.%1)?(%2))").arg(DEC_LITERAL).arg(FLOAT_SUFFIX);
+
+        //        const QString FLOAT_EXPONENT = QString("(e|E)(\\+|-)?(%1|_)*%1(%1|_)*").arg(DEC_DIGIT);
+        //        const QString FLOAT_LITERAL = QString("(%1.)|(%1%2)|(%1.%1(%2)?)|(%1(.%1)?(%2)?(%3))")
+        //                                          .arg(DEC_LITERAL)
+        //                                          .arg(FLOAT_EXPONENT)
+        //                                          .arg(FLOAT_SUFFIX);
 
         /**
          * @brief Boolean literals from rust spec:
@@ -117,9 +123,10 @@ namespace regexp
     namespace string_literals
     {
         constexpr const auto ISOLATED_CR = "\r^\n";
-        const QString ASCII_ESCAPES =
-            QString("(\\x%1%2)|\n|\r|\t|\0").arg(number_literals::OCT_DIGIT).arg(number_literals::HEX_DIGIT);
-        constexpr const auto QUOTE_ESCAPES = "[\\\'\\\"]";
+        const QString ASCII_ESCAPES = QString("(\\\\x%1%2)|\\\\n|\\\\r|\\\\t|\\\\0")
+                                          .arg(number_literals::OCT_DIGIT)
+                                          .arg(number_literals::HEX_DIGIT);
+        constexpr const auto QUOTE_ESCAPES = "(\\\\\')|(\\\\\")";
         const QString UNICODE_ESCAPES = QString("\\u\\{(%1_*){1,6}\\}").arg(number_literals::HEX_DIGIT);
 
         const QString CHAR_LITERAL = QString("\'([^\'\\\\\n\r\t])\'");

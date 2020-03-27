@@ -1,4 +1,5 @@
 // Integer
+
 123;                               // type i32
 123i32;                            // type i32
 123u32;                            // type u32
@@ -36,3 +37,4 @@ let a: u64 = 123;                  // type u64
 
 0b_;
 0b____;
+

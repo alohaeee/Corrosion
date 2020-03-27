@@ -29,6 +29,7 @@ else()
 endif()
 
 include_directories($<TARGET_PROPERTY:Corrosion::Core,INCLUDE_DIRECTORIES>)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 #
 # Function for setup basic test
@@ -43,8 +44,12 @@ endfunction()
 #
 # Tests
 #
-SETUP_BASIC_TEST(LEXER lexer/lexer.cpp)
+SETUP_BASIC_TEST(NUMBER_LITERALS lexer/number_literals.cpp)
+SETUP_BASIC_TEST(STRING_LITERALS lexer/string_literals.cpp)
 
-file(INSTALL lexer/rs/ DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/rs)
+#
+# Install Rust src files.
+#
+file(INSTALL rs/ DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/rs)
 
 

@@ -124,7 +124,9 @@ enum class TokenID : unsigned int
     IDENTIFIER = 280,
     // literals
     INTEGER_LITERAL,
+    INTEGER_SUFFIX,
     FLOAT_LITERAL,
+    FLOAT_SUFFIX,
     FLOAT_EXPONENT,
     CHAR_LITERAL,
     STRING_LITERAL,

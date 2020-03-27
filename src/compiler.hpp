@@ -23,6 +23,8 @@ class Compiler
                                      {"mut", TokenID::KW_MUT},
                                      {"if", TokenID::KW_IF},
                                      {"return", TokenID::KW_RETURN},
+                                     {regexp::number_literals::INTEGER_SUFFIX, TokenID::INTEGER_SUFFIX},
+                                     {regexp::number_literals::FLOAT_SUFFIX, TokenID::FLOAT_SUFFIX},
                                      {regexp::number_literals::INTEGER_LITERAL, TokenID::INTEGER_LITERAL},
                                      {regexp::number_literals::FLOAT_LITERAL, TokenID::FLOAT_LITERAL},
                                      {regexp::number_literals::BOOLEAN_LITERAL, TokenID::BOOLEAN_LITERAL},
@@ -60,7 +62,9 @@ class Compiler
                                      {">=", TokenID::GT},
                                      {"<=", TokenID::LE},
                                      {"!=", TokenID::NE},
+                                     {"\\.", TokenID::DOT},
 
+                                     {regexp::number_literals::FLOAT_LITERAL, TokenID::FLOAT_LITERAL},
                                      {regexp::string_literals::CHAR_LITERAL, TokenID::CHAR_LITERAL},
                                      {regexp::string_literals::STRING_LITERAL, TokenID::STRING_LITERAL},
 

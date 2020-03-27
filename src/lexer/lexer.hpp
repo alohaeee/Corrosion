@@ -64,11 +64,6 @@ public:
             auto [result, token] = LongestTerminate(text, end);
             if (result)
             {
-                if (token.type != IGNORE)
-                {
-                    m_queue.push_back(token);
-                }
-
                 if (end != 0)
                 {
                     auto lexem = text.mid(begin, end - begin);
@@ -81,6 +76,10 @@ public:
                             m_queue.push_back({lexem, type});
                         }
                     }
+                }
+                if (token.type != IGNORE)
+                {
+                    m_queue.push_back(token);
                 }
 
                 end += result - 1;
