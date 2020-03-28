@@ -38,3 +38,33 @@ TEST(RegExpTest, QuoteEscapes)
     EXPECT_NE(-1, rx.indexIn(file));
     EXPECT_STREQ("\\\'", rx.cap().toStdString().data());
 }
+
+TEST_F(CompilerFixture, CharLiteral)
+{
+    lexer->Lex("\'d\'; \'\\x21\' \'\\\"\' \'\n\'");
+
+    TokenCheck(TokenID::CHAR_LITERAL, "\'d\'");
+    TokenCheck(TokenID::SEMI, ";");
+
+    TokenCheck(TokenID::CHAR_LITERAL, "\'\\x21\'");
+    TokenCheck(TokenID::CHAR_LITERAL, "\'\\\"\'");
+
+    TokenCheck(TokenID::UNKNOWN, "\'");
+    TokenCheck(TokenID::UNKNOWN, "\'");
+}
+
+TEST_F(CompilerFixture, StringLiteral)
+{
+    lexer->Lex(" \"simple text\";\n \"alohaaeee\\neee\\t\"; \t \"\n\t\r\"");
+
+    TokenCheck(TokenID::STRING_LITERAL, "\"simple text\"");
+    TokenCheck(TokenID::SEMI, ";");
+
+    TokenCheck(TokenID::STRING_LITERAL, "\"alohaaeee\\neee\\t\"");
+    TokenCheck(TokenID::SEMI, ";");
+
+    TokenCheck(TokenID::UNKNOWN, "\"");
+    TokenCheck(TokenID::UNKNOWN, "\"");
+
+    LexAndLog("rs/lexer/string_literals.rs");
+}

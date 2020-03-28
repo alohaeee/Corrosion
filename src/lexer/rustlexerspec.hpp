@@ -127,22 +127,18 @@ namespace regexp
                                           .arg(number_literals::OCT_DIGIT)
                                           .arg(number_literals::HEX_DIGIT);
         constexpr const auto QUOTE_ESCAPES = "(\\\\\')|(\\\\\")";
-        const QString UNICODE_ESCAPES = QString("\\u\\{(%1_*){1,6}\\}").arg(number_literals::HEX_DIGIT);
+        // const QString UNICODE_ESCAPES = QString("\\\\u\\{(%1_){1,6}\\}").arg(number_literals::HEX_DIGIT);
 
-        const QString CHAR_LITERAL = QString("\'([^\'\\\\\n\r\t])\'");
+        // const QString CHAR_LITERAL = QString("\'([^\'\\\\\n\r\t])\'");
 
-        //        const QString CHAR_LITERAL = QString("\'([^\'\n\r\t] | (%1) | (%2) | (%3))\'")
-        //                                         .arg(QUOTE_ESCAPES)
-        //                                         .arg(ASCII_ESCAPES)
-        //                                         .arg(UNICODE_ESCAPES);
+        const QString CHAR_LITERAL = QString("\'([^\'\\\\\n\r\t]|(%1)|(%2))\'").arg(QUOTE_ESCAPES).arg(ASCII_ESCAPES);
         const constexpr auto STRING_CONTINUE = "\\\n";
-        const QString STRING_LITERAL = QString("\"([^\\\\\n\r\t]|\\\\.)*\"");
-        //        const QString STRING_LITERAL = QString("\"((^[\"\\%1])|(%2)|(%3)|(%4)|(%5))*\"")
-        //                                           .arg(ISOLATED_CR)
-        //                                           .arg(QUOTE_ESCAPES)
-        //                                           .arg(ASCII_ESCAPES)
-        //                                           .arg(UNICODE_ESCAPES)
-        //                                           .arg(STRING_CONTINUE);
+        // const QString STRING_LITERAL = QString("\"([^\"\\\\\n\r\t]|\\\\.)*\"");
+        const QString STRING_LITERAL = QString("\"([^\"\\\\%1]|(%2)|(%3)|(%4))*\"")
+                                           .arg(ISOLATED_CR)
+                                           .arg(QUOTE_ESCAPES)
+                                           .arg(ASCII_ESCAPES)
+                                           .arg(STRING_CONTINUE);
 
     } // namespace string_literals
 } // namespace regexp
