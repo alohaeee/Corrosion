@@ -5,7 +5,6 @@ Rust ASM Compiler  made with C++
 First of all clone this repository 
 ```
 git clone --recurse-submodules https://github.com/alohaeee/Corrosion.git
-### Hand install
 ```
 Then you must [install spdlog](https://github.com/gabime/spdlog#install). 
 ```
