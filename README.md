@@ -17,4 +17,4 @@ cd build
 cmake --build ..
 ```
 ## Third party
-[spdlog](https://github.com/gabime/spdlog)
+- [spdlog](https://github.com/gabime/spdlog)
