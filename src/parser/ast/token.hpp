@@ -57,8 +57,7 @@ namespace corrosion::ast
 		/// treat regular and interpolated identifiers in the same way.
 		Ident,
 
-
-		Keyword,
+		Type,
 		/// Lifetime identifier token.
 		/// Do not forget about `NtLifetime` when you want to match on lifetime identifiers.
 		/// It's recommended to use `Token::(lifetime,uninterpolate,uninterpolated_span)` to

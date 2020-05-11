@@ -110,6 +110,11 @@ int main()
 		std::cout << e.what();
 	}
 
+	Interner::fresh();
+	CR_DEBUG_LOG_TRACE("AHAHA: {}",Interner::get(sym::Char));
+
+
+
 
 	return 0;
 }
