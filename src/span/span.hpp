@@ -17,6 +17,7 @@ namespace corrosion
 			m_lo = lo;
 			m_hi = hi;
 		}
+
 		[[nodiscard]] std::uint32_t len() const noexcept
 		{
 			return m_hi - m_lo;

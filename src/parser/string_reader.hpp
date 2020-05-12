@@ -1,12 +1,14 @@
 #ifndef CORROSION_SRC_PARSER_LEXER_STRING_READER_HPP_
 #define CORROSION_SRC_PARSER_LEXER_STRING_READER_HPP_
 
-#include <utility/fwd.hpp>
+#include "utility/fwd.hpp"
 
 #include "lexer/lexer.hpp"
 #include "parser/parse_session.hpp"
 #include "parser/ast/token.hpp"
 #include "span/source_file.hpp"
+#include "span/symbol.hpp"
+#include "span/span.hpp"
 #include "error/log.hpp"
 
 namespace corrosion
@@ -29,6 +31,14 @@ namespace corrosion
 				m_start, m_tokenizer.consumed(),
 				Tokenizer::tokenDataPrintable(token.data), m_tokenizer.text().substr(m_start, token.consumed));
 #endif
+		}
+		inline std::string_view strToken() const
+		{
+			return m_tokenizer.text().substr(m_start, m_tokenizer.consumed());
+		}
+		inline Span spanToken() const
+		{
+			return { m_start, m_tokenizer.consumed() };
 		}
 		ast::Token nextToken()
 		{
@@ -61,32 +71,45 @@ namespace corrosion
 				auto data = std::get<token_data::BlockComment>(token.data);
 				if (!data.terminated)
 				{
-					m_parseSession->criticalSpan({m_start,m_tokenizer.consumed()},"unterminated block comment");
+					m_parseSession->criticalSpan(spanToken(), "unterminated block comment");
 				}
 				return ast::TokenKind::Comment;
 			}
 			case TokenKind::Whitespace:
 				return ast::TokenKind::Whitespace;
+
 			case TokenKind::Identifier:
+			{
+				auto sym = Symbol::intern(strToken());
+				return ast::TokenKind::Ident;
+			}
 
 			case TokenKind::RawIdentifier:
-				return ast::TokenKind::Ident;
+				m_parseSession->errorSpan(spanToken(), "raw identifiers are not implimented.");
+				return ast::TokenKind::Unknown;
+
 			case TokenKind::Literal:
 				return ast::TokenKind::Literal;
+
 			case TokenKind::Lifetime:
 			{
 				auto start_with_number = std::get<token_data::Lifetime>(token.data).startWithNumber;
-				if(start_with_number)
+				if (start_with_number)
 				{
-					m_parseSession->errorSpan({m_start,m_tokenizer.consumed()},"lifetimes cannot start with a number");
+					m_parseSession->errorSpan(spanToken(), "lifetimes cannot start with a number");
 				}
 				return ast::TokenKind::Lifetime;
 
 			}
 			default:
-				return ast::TokenKind::Whitespace;
-
+			{
+				m_parseSession->criticalSpan(spanToken(), "unknown start of token");
+				return ast::TokenKind::Unknown;
 			}
+			}
+		}
+		void checkLexerLiterals()
+		{
 
 		}
 	 protected:

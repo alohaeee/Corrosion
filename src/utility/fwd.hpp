@@ -8,6 +8,9 @@
 #include <iostream>
 #include <map>
 #include <unordered_map>
+#include <cassert>
+#include <variant>
+#include <optional>
 
 
 #include "file_loader.hpp"

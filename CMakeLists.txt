@@ -56,7 +56,7 @@ target_link_libraries(Corrosion_Core PUBLIC spdlog::spdlog)
 # Executable
 #
 
-add_executable(Corrosion src/main.cpp)
+add_executable(Corrosion src/main.cpp src/span/symbol.cpp src/parser/ast/token.cpp test/lexer/uchar.cpp)
 target_link_libraries(Corrosion PUBLIC Corrosion_Core)
 target_compile_features(Corrosion PUBLIC cxx_std_20)
 

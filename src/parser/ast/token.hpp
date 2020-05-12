@@ -4,6 +4,7 @@
 #include "utility/fwd.hpp"
 
 #include "span/span.hpp"
+#include "span/symbol.hpp"
 
 namespace corrosion::ast
 {
@@ -64,7 +65,7 @@ namespace corrosion::ast
 		/// treat regular and interpolated lifetime identifiers in the same way.
 		Lifetime,
 
-		Interpolated,
+		//Interpolated,
 
 //		// Can be expanded into several tokens.
 //		/// A doc comment.
@@ -77,7 +78,6 @@ namespace corrosion::ast
 		Whitespace,
 		/// A comment.
 		Comment,
-		Shebang,
 		/// A completely invalid token which should be skipped.
 		Unknown,
 
@@ -85,9 +85,9 @@ namespace corrosion::ast
 	};
 	namespace data
 	{
-		struct DelimToken
+		struct Delim
 		{
-			enum class TokenKind
+			enum Kind
 			{
 				/// A round parenthesis (i.e., `(` or `)`).
 				Paren,
@@ -101,7 +101,7 @@ namespace corrosion::ast
 
 			std::size_t len() const noexcept
 			{
-				if (kind == DelimToken::TokenKind::NoDelim)
+				if (kind == Delim::Kind::NoDelim)
 				{
 					return 0;
 				}
@@ -109,13 +109,29 @@ namespace corrosion::ast
 			}
 			inline bool isEmpty() const noexcept
 			{
-				return kind == DelimToken::TokenKind::NoDelim;
+				return kind == Delim::Kind::NoDelim;
 			}
 		};
-
-		struct LitKind
+		struct BinOp
 		{
-			enum class TokenKind
+			enum Kind
+			{
+				Plus,
+				Minus,
+				Star,
+				Slash,
+				Percent,
+				Caret,
+				And,
+				Or,
+				Shl,
+				Shr
+			} kind;
+		};
+
+		struct Literal
+		{
+			enum Kind
 			{
 				Bool, // AST only, must never appear in a `Token`
 				Byte,
@@ -125,17 +141,174 @@ namespace corrosion::ast
 				Str,
 				Err,
 			} kind;
+			Symbol symbol;
+			std::optional<Symbol> suffix;
+
+			static std::string kindPrintable(const Literal& literal) noexcept
+			{
+				switch (literal.kind)
+				{
+				case Kind::Bool:
+					return "bool";
+				case Kind::Byte:
+					return "byte";
+				case Kind::Char:
+					return "char";
+				case Kind::Str:
+					return "string";
+				case Kind::Float:
+					return "float";
+				case Kind::Integer:
+					return "integer";
+				case Kind::Err:
+					return "err";
+				default:
+					return "";
+				}
+			}
+			bool mayHaveSuffix() const noexcept
+			{
+				if (kind == Kind::Integer || kind == Kind::Float || kind == Kind::Err)
+				{
+					return true;
+				}
+				return false;
+			}
 		};
-		struct Keyword
+		struct Ident
+		{
+			Symbol symbol;
+			static bool identCanBeginExpr(Span span, Symbol symbol);
+			static bool exprKeyword(Symbol symbol)
+			{
+				switch (kw(symbol.data()))
+				{
+				case kw::Async:
+				case kw::Do:
+				case kw::Box:
+				case kw::Break:
+				case kw::Continue:
+				case kw::False:
+				case kw::For:
+				case kw::If:
+				case kw::Let:
+				case kw::Loop:
+				case kw::Match:
+				case kw::Move:
+				case kw::Return:
+				case kw::True:
+				case kw::Unsafe:
+				case kw::While:
+				case kw::Yield:
+				case kw::Static:
+					return true;
+				default:
+					return false;
+				}
+
+			}
+		};
+		struct Lifetime
+		{
+			Symbol symbol;
+		};
+		struct Empty
 		{
 
 		};
 	}
+	using TokenData = std::variant<data::Delim,
+								   data::BinOp,
+								   data::Literal,
+								   data::Ident,
+								   data::Lifetime,
+								   data::Empty>;
 
 	struct Token
 	{
 		TokenKind kind;
 		Span span;
+		TokenData data;
+
+	 public:
+		Token(TokenKind kind = TokenKind::Whitespace, Span span = {}, TokenData data = data::Empty{}) :
+			kind{ kind }, span{ span }, data{ data }
+		{
+		}
+		bool isOp() const noexcept
+		{
+			switch (kind)
+			{
+			case TokenKind::OpenDelim:
+			case TokenKind::CloseDelim:
+			case TokenKind::Literal:
+			case TokenKind::Comment:
+			case TokenKind::Ident:
+			case TokenKind::Lifetime:
+			case TokenKind::Whitespace:
+			case TokenKind::Eof:
+				return false;
+			default:
+				return true;
+			}
+		}
+		template<typename T>
+		inline auto getData() const
+		{
+			return std::get<T>(data);
+		}
+		bool isLikePlus() const noexcept
+		{
+			if(kind == TokenKind::BinOp || kind==TokenKind::BinOpEq)
+			{
+				auto kind = std::get<data::BinOp>(data).kind;
+				if(kind == data::BinOp::Kind::Plus)
+				{
+					return true;
+				}
+			}
+			return false;
+		}
+		//! Returns `true` if the token can appear at the start of an expression.
+		bool canBeginExpr() const noexcept
+		{
+			switch(kind)
+			{
+			case TokenKind::Ident: // value name or keyword
+			{
+				auto token_data = getData<data::Ident>();
+				return data::Ident::identCanBeginExpr(span, token_data.symbol);
+			}
+			case TokenKind::OpenDelim:  // tuple, array or block
+			case TokenKind::Literal: // literal
+			case TokenKind::Not:  // operator not
+				return true;
+			case TokenKind::BinOp:
+			{
+				auto token_data = getData<data::BinOp>();
+				switch(token_data.kind)
+				{
+				case data::BinOp::Minus:
+				case data::BinOp::Star:
+				case data::BinOp::Or: // closure
+				case data::BinOp::And:
+					return true;
+				default:
+					return false;
+				}
+			}
+			case TokenKind::OrOr: // closure
+			case TokenKind::AndAnd:  // double reference
+				return true;
+
+
+
+			case TokenKind::ModSep:
+				return true;
+			}
+			return false;
+		}
+
 	};
 }
 
