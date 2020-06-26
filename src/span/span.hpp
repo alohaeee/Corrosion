@@ -1,6 +1,3 @@
-//
-// Created by Vladislav on 05.05.2020.
-//
 #ifndef CORROSION_SRC_PARSER_SPAN_SPAN_HPP_
 #define CORROSION_SRC_PARSER_SPAN_SPAN_HPP_
 
@@ -59,11 +56,15 @@ namespace corrosion
 		{
 			return !(*this == other);
 		}
-
-		[[nodiscard]] static Span sum(Span lhv, Span rhv) noexcept
+		Span& to(Span rhs) noexcept
 		{
-			auto lo = std::max(lhv.m_lo, rhv.m_lo);
-			auto hi = std::max(lhv.m_hi, rhv.m_hi);
+			*this = Span::sum(*this,rhs);
+			return *this;
+		}
+		[[nodiscard]] static Span sum(Span lhs, Span rhs) noexcept
+		{
+			auto lo = std::max(lhs.m_lo, rhs.m_lo);
+			auto hi = std::max(lhs.m_hi, rhs.m_hi);
 
 			return { lo, hi };
 		}
@@ -72,6 +73,9 @@ namespace corrosion
 		std::uint32_t m_lo;
 		std::uint32_t m_hi;
 	};
+
+	template<typename SpType>
+	using Spanned = std::pair<SpType,Span>;
 
 }
 #endif //CORROSION_SRC_PARSER_SPAN_SPAN_HPP_

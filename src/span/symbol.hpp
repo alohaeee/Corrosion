@@ -1,7 +1,8 @@
 #ifndef CORROSION_SRC_SPAN_SYMBOL_HPP_
 #define CORROSION_SRC_SPAN_SYMBOL_HPP_
 
-#include "utility/fwd.hpp"
+#include "utility/std_incl.hpp"
+#include "error/log.hpp"
 
 #include "span/keywords_and_syms.hpp"
 #include "span/span.hpp"
@@ -15,18 +16,15 @@ namespace corrosion
 	 public:
 
 		using index_type = std::uint32_t;
-		Symbol(std::uint32_t n) : m_id(n)
+		static Symbol intern(std::string_view view);
+		Symbol(SymType n) : m_id(n)
 		{
 		}
-		static Symbol intern(std::string_view view)
+
+
+		bool isKeyword() const noexcept
 		{
-			return { 0 };
-		}
-		Symbol(kw keyword) : m_id(static_cast<std::uint32_t>(keyword))
-		{
-		}
-		Symbol(sym keyword) : m_id(static_cast<std::uint32_t>(keyword))
-		{
+			return *this >= kw::Invalid && *this <= kw::Union;
 		}
 
 		std::string_view toString() const;
@@ -70,12 +68,12 @@ namespace corrosion
 			return lhv.m_id != rhv.m_id;
 		}
 
-		[[nodiscard]] const std::uint32_t data() const
+		[[nodiscard]] inline const SymType data() const
 		{
 			return m_id;
 		}
 	 protected:
-		std::uint32_t m_id;
+		SymType m_id;
 	};
 	class Ident
 	{
@@ -103,7 +101,7 @@ namespace corrosion
 		/// Returns `true` if the token is a keyword used in the language.
 		bool isUsedKeyword() const noexcept
 		{
-			return m_name >= kw::As && m_name <=kw::Yield;
+			return m_name >= kw::As && m_name <= kw::Yield;
 		}
 
 	 private:
@@ -121,10 +119,9 @@ namespace corrosion
 				return iter->second;
 			}
 
-			s_strings.push_back(view.data());
-			auto inserted = s_names.emplace(s_strings.back(), Symbol{ s_strings.size() });
-
-			return inserted.second;
+			s_strings.push_back(std::string(view));
+			auto inserted = s_names.emplace(s_strings.back(), Symbol{ s_strings.size() - 1});
+			return inserted.first->second;
 		}
 		[[nodiscard]] inline static std::string_view get(Symbol symbol)
 		{

@@ -1,7 +1,7 @@
 #ifndef CORROSION_SRC_PARSER_SYMBOL_GALLERY_HPP_
 #define CORROSION_SRC_PARSER_SYMBOL_GALLERY_HPP_
 
-#include "utility/fwd.hpp"
+#include "utility/std_incl.hpp"
 
 namespace corrosion
 {

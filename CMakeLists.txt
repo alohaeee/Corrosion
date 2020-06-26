@@ -36,7 +36,12 @@ message("*")
 #
 include(GNUInstallDirs)
 
-add_library(Corrosion_Core src/main.cpp)
+add_library(Corrosion_Core
+        src/span/symbol.cpp
+        src/ast/token.cpp
+        src/parser/parse/expr.cpp
+        src/parser/parse/diagnostics.cpp
+        src/ast/token_tree.cpp)
 add_library(Corrosion::Core ALIAS Corrosion_Core)
 
 target_include_directories(Corrosion_Core PUBLIC "${Corrosion_SOURCE_DIR}/src")
@@ -56,7 +61,7 @@ target_link_libraries(Corrosion_Core PUBLIC spdlog::spdlog)
 # Executable
 #
 
-add_executable(Corrosion src/main.cpp src/span/symbol.cpp src/parser/ast/token.cpp test/lexer/uchar.cpp)
+add_executable(Corrosion src/main.cpp)
 target_link_libraries(Corrosion PUBLIC Corrosion_Core)
 target_compile_features(Corrosion PUBLIC cxx_std_20)
 

@@ -1,7 +1,7 @@
 #ifndef CORROSION_SRC_LOG_HPP_
 #define CORROSION_SRC_LOG_HPP_
 
-#include "utility/fwd.hpp"
+#include "utility/std_incl.hpp"
 
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
@@ -43,6 +43,7 @@ namespace corrosion
 			s_stringReaderLogger = spdlog::basic_logger_mt("StringReader",
 				(std::filesystem::current_path()/"logs"/"string_reader.txt").string());
 			s_stringReaderLogger->set_level(spdlog::level::trace);
+			s_stringReaderLogger->set_pattern("%v%$");
 #endif
 
 		}

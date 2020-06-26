@@ -273,7 +273,7 @@ namespace corrosion
 		/// [Code Point]: http://www.unicode.org/glossary/#code_point
 		union CharData
 		{
-			char bytes[4]{ '\0' };
+			char bytes[5]{ '\0' };
 			uint32_t code;
 		};
 	 public:

@@ -1,7 +1,7 @@
 #ifndef CORROSION_SRC_ERROR_ERROR_HPP_
 #define CORROSION_SRC_ERROR_ERROR_HPP_
 
-#include "utility/fwd.hpp"
+#include "utility/std_incl.hpp"
 #include "error/log.hpp"
 #include <exception>
 #include "span/span.hpp"

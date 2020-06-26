@@ -1,7 +1,7 @@
 #ifndef CORROSION_SRC_SPAN_SOURCE_FILE_HPP_
 #define CORROSION_SRC_SPAN_SOURCE_FILE_HPP_
 
-#include "utility/fwd.hpp"
+#include "utility/std_incl.hpp"
 #include "utility/file_loader.hpp"
 
 namespace corrosion
@@ -61,7 +61,7 @@ namespace corrosion
 		{
 			return m_lines.size();
 		}
-		[[nodiscard]] std::size_t inLine(std::size_t byte)
+		[[nodiscard]] std::size_t inLine(std::size_t byte) const
 		{
 			auto result = std::lower_bound(m_lines.begin(), m_lines.end(),byte);
 			if(result == m_lines.end())
@@ -69,6 +69,10 @@ namespace corrosion
 				return -1;
 			}
 			return std::distance(m_lines.begin(),result);
+		}
+		std::string_view fromSpan(Span span) const
+		{
+			return std::string_view(m_src).substr(span.lo(), span.hi()-span.lo());
 		}
 	 protected:
 		/// The name of the file that the source came from.

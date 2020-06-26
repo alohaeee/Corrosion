@@ -103,6 +103,7 @@ namespace corrosion
 			{ "u8", sym::U8 },
 			{ "uint", sym::UInt },
 			{ "usize", sym::USize },
+			{"0", sym::Zero},
 		});
 	}
 	Ident::Ident(std::string_view view, Span span) : m_name{Interner::intern(view)}, m_span{span}
@@ -110,5 +111,9 @@ namespace corrosion
 	std::string_view Symbol::toString() const
 	{
 		return Interner::get(*this);
+	}
+	Symbol Symbol::intern(std::string_view view)
+	{
+		return Interner::intern(view);
 	}
 }

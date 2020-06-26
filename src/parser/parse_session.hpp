@@ -1,7 +1,7 @@
 #ifndef CORROSION_SRC_PARSER_SPAN_SOURCE_MAP_HPP_
 #define CORROSION_SRC_PARSER_SPAN_SOURCE_MAP_HPP_
 
-#include "utility/fwd.hpp"
+#include "utility/std_incl.hpp"
 #include "error/error.hpp"
 #include "span/source_file.hpp"
 #include "span/span.hpp"
@@ -26,6 +26,10 @@ namespace corrosion
 
 		std::string emitSpan(Span span)
 		{
+			if(span.isDummy())
+			{
+				return "";
+			}
 			auto lo_line = m_file.inLine(span.lo());
 			auto hi_line = m_file.inLine(span.hi());
 			auto hi_str_size = std::to_string(hi_line).size();

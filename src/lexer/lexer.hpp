@@ -10,7 +10,7 @@
 #include "cursor.hpp"
 #include "unescape.hpp"
 
-namespace corrosion
+namespace corrosion::lexer
 {
 	enum class TokenKind
 	{
@@ -148,7 +148,7 @@ namespace corrosion
 //			bool terminated;
 //		} byteStr_kind;
 	}
-	namespace token_data
+	namespace data
 	{
 		struct BlockComment
 		{
@@ -161,16 +161,15 @@ namespace corrosion
 		using LiteralKind = std::variant<literal_types::Int,
 										 literal_types::Float,
 										 literal_types::Char,
-										 literal_types::Str,
-										 literal_types::Empty>;
+										 literal_types::Str>;
 		struct Empty
 		{
 
 		};
 	}
 
-	using TokenData = std::variant<token_data::LiteralKind, token_data::BlockComment,
-								   token_data::Lifetime, token_data::Empty>;
+	using TokenData = std::variant<data::LiteralKind, data::BlockComment,
+								   data::Lifetime, data::Empty>;
 
 	// helper type for the visitor
 	template<class T>
@@ -326,14 +325,15 @@ namespace corrosion
 				return "";
 			}
 		}
-		static std::string literalKindPrintable(const token_data::LiteralKind& kind)
+		static std::string literalKindPrintable(const data::LiteralKind& kind)
 		{
 			return std::visit([](auto&& arg) -> std::string
 			{
 			  using T = std::decay_t<decltype(arg)>;
 			  if constexpr (std::is_same_v<T, literal_types::Int>)
 			  {
-				  return std::string("Literal kind: Integer; ") + std::string("Base: ") + literalBasePrintable(arg.base);
+				  return std::string("Literal kind: Integer; ") + std::string("Base: ")
+					  + literalBasePrintable(arg.base);
 			  }
 			  else if constexpr(std::is_same_v<T, literal_types::Float>)
 			  {
@@ -347,10 +347,6 @@ namespace corrosion
 			  {
 				  return "Literal kind: String";
 			  }
-			  else if constexpr (std::is_same_v<T, literal_types::Empty>)
-			  {
-				  return "";
-			  }
 			  else
 			  {
 				  static_assert(always_false<T>::value, "non-exhaustive visitor for LiteralKind!");
@@ -363,19 +359,21 @@ namespace corrosion
 			return std::visit([](auto&& arg) -> std::string
 			{
 			  using T = std::decay_t<decltype(arg)>;
-			  if constexpr (std::is_same_v<T, token_data::LiteralKind>)
+			  if constexpr (std::is_same_v<T, data::LiteralKind>)
 			  {
 				  return std::string("TokenData: \"") + literalKindPrintable(arg) + std::string("\"");
 			  }
-			  else if constexpr(std::is_same_v<T, token_data::BlockComment>)
+			  else if constexpr(std::is_same_v<T, data::BlockComment>)
 			  {
-				  return std::string("TokenData: \"Block Comment is ") + std::string((arg.terminated?"terminated\"" : "!not terminated!\"")) ;
+				  return std::string("TokenData: \"Block Comment is ")
+					  + std::string((arg.terminated ? "terminated\"" : "!not terminated!\""));
 			  }
-			  else if constexpr(std::is_same_v<T, token_data::Lifetime>)
+			  else if constexpr(std::is_same_v<T, data::Lifetime>)
 			  {
-				  return std::string("TokenData: \"Lifetime ") + std::string((arg.startWithNumber?"!start with number!\"":"dont start with number\""));
+				  return std::string("TokenData: \"Lifetime ")
+					  + std::string((arg.startWithNumber ? "!start with number!\"" : "dont start with number\""));
 			  }
-			  else if constexpr (std::is_same_v<T, token_data::Empty>)
+			  else if constexpr (std::is_same_v<T, data::Empty>)
 			  {
 				  return "";
 			  }
@@ -397,7 +395,7 @@ namespace corrosion
 		{
 			auto init_len = this->consumed();
 			TokenKind token_kind = TokenKind::Unknown;
-			TokenData token_data = token_data::Empty();
+			TokenData token_data = data::Empty();
 			auto first_char = this->shift();
 
 			switch (first_char)
@@ -452,7 +450,7 @@ namespace corrosion
 				}
 				else if (Alphabet::isDecDigit(first_char))
 				{
-					token_data = token_data::LiteralKind {this->number()};
+					token_data = data::LiteralKind{ this->number() };
 					token_kind = TokenKind::Literal;
 				}
 				break;
@@ -551,7 +549,7 @@ namespace corrosion
 				{
 					this->eatLiteralSuffix();
 				}
-				token_data = token_data::LiteralKind{literal_types::Str{ terminated, suffix_start }};
+				token_data = data::LiteralKind{ literal_types::Str{ terminated, suffix_start }};
 				token_kind = TokenKind::Literal;
 				break;
 
@@ -590,7 +588,7 @@ namespace corrosion
 					if (this->first() == '/')
 					{
 						this->shift();
-						depth --;
+						depth--;
 						if (depth == 0)
 						{
 							// This block comment is closed, so for a construction like "/* */ */"
@@ -602,7 +600,7 @@ namespace corrosion
 				}
 				c = this->shift();
 			}
-			return { TokenKind::BlockComment, token_data::BlockComment{ depth == 0 }};
+			return { TokenKind::BlockComment, data::BlockComment{ depth == 0 }};
 		}
 		TokenKind
 		whitespace()
@@ -630,11 +628,11 @@ namespace corrosion
 			return TokenKind::RawIdentifier;
 		}
 
-		token_data::LiteralKind number()
+		data::LiteralKind number()
 		{
 			assert(this->prev() >= '0' && this->prev() <= '9');
 			Base base = Base::Decimal;
-			token_data::LiteralKind kind{};
+			data::LiteralKind kind{};
 
 			if (this->prev() == '0')
 			{
@@ -680,7 +678,7 @@ namespace corrosion
 				{
 					auto suffix_start = this->consumed();
 					this->eatLiteralSuffix();
-					kind = literal_types::Int{ base, true };
+					kind = literal_types::Int{ base, true,suffix_start };
 					return kind;
 				}
 
@@ -711,7 +709,7 @@ namespace corrosion
 					}
 					auto suffix_start = this->consumed();
 					this->eatLiteralSuffix();
-					kind = literal_types::Float{ base, empty_exponent };
+					kind = literal_types::Float{ base, empty_exponent,suffix_start };
 					return kind;
 				}
 			}
@@ -722,13 +720,13 @@ namespace corrosion
 
 				auto suffix_start = this->consumed();
 				this->eatLiteralSuffix();
-				kind = literal_types::Float{ base, empty_exponent };
+				kind = literal_types::Float{ base, empty_exponent ,suffix_start};
 				return kind;
 			}
 
 			auto suffix_start = this->consumed();
 			this->eatLiteralSuffix();
-			kind = literal_types::Int{ base, false };
+			kind = literal_types::Int{ base, false,suffix_start };
 			return kind;
 
 		}
@@ -759,7 +757,7 @@ namespace corrosion
 					this->eatLiteralSuffix();
 				}
 				auto kind = literal_types::Char{ terminated, suffix_start };
-				return { TokenKind::Literal, token_data::LiteralKind{ kind }};
+				return { TokenKind::Literal, data::LiteralKind{ kind }};
 			}
 			// Either a lifetime or a character literal with
 			// length greater than 1.
@@ -777,11 +775,12 @@ namespace corrosion
 			if (this->first() == '\'')
 			{
 				this->shift();
-				auto kind = literal_types::Char{ true };
-				return { TokenKind::Literal, token_data::LiteralKind{ kind }};
+				this->eatLiteralSuffix();
+				auto kind = literal_types::Char{ true, this->consumed()};
+				return { TokenKind::Literal, data::LiteralKind{ kind }};
 			}
 
-			return { TokenKind::Lifetime, token_data::Lifetime{ start_with_number }};
+			return { TokenKind::Lifetime, data::Lifetime{ start_with_number }};
 		}
 
 		bool singleQuotedString()
