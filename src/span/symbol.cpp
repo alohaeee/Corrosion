@@ -103,6 +103,7 @@ namespace corrosion
 			{ "u8", sym::U8 },
 			{ "uint", sym::UInt },
 			{ "usize", sym::USize },
+			{ "sym", sym::Var},
 			{"0", sym::Zero},
 		});
 	}

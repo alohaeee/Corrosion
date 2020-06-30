@@ -107,6 +107,7 @@ namespace corrosion
 			F64,
 			USize,
 			Zero,
+			Var,
 		};
 	 private:
 		sym();

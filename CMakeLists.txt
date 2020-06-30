@@ -41,6 +41,7 @@ add_library(Corrosion_Core
         src/ast/token.cpp
         src/parser/parse/expr.cpp
         src/parser/parse/diagnostics.cpp
+        src/parser/parse/stmt.cpp
         src/ast/token_tree.cpp)
 add_library(Corrosion::Core ALIAS Corrosion_Core)
 

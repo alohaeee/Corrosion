@@ -167,6 +167,30 @@ namespace corrosion
 			}
 			return std::nullopt;
 		}
+		Token lookahead(std::size_t n)
+		{
+			auto tree = tokenCursor.frame.cursor.lookahead(n);
+			if(tree)
+			{
+				if(tree->first.isToken())
+				{
+					return tree->first.getToken();
+				}
+				else
+				{
+					auto delim = tree->first.getDelimited();
+					return Token{TokenKind::OpenDelim,delim.span.close,delim.kind};
+				}
+
+			}
+			return Token{TokenKind::CloseDelim,tokenCursor.frame.span.close,tokenCursor.frame.delim};
+
+		}
+		/// Is the given keyword `kw` followed by a non-reserved identifier?
+		bool isKwFollowedByIdent(SymType kw)
+		{
+			return token.isKeyword(kw) && !lookahead(1).isKeyword();
+		}
 
 
 //
@@ -182,6 +206,14 @@ namespace corrosion
 		Spanned<Pointer<Expr>> parsePrefixExprCommon(Span lo);
 		Pointer<Expr> parseUnaryExpr(Span lo, UnOp op);
 		Pointer<Expr> parseLitExpr();
+		Pointer<Expr> parseCondExpr();
+		Pointer<Expr> parseWhileExpr();
+
+		Pointer<Expr> parseForExpr();
+
+		Pointer<Block> parseBlockCommon();
+
+		Pointer<Stmt> parseStmtWithoutRecovery();
 
 		//diagnistics
 

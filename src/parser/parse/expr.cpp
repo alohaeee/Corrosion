@@ -333,5 +333,18 @@ namespace corrosion
 		this->shift();
 		return MakePointer<Expr>(lo,std::move(lit));
 	}
+	Pointer<Expr> Parser::parseCondExpr()
+	{
+		return parseAssocExprWith(0,nullptr);
+	}
+	Pointer<Expr> Parser::parseWhileExpr()
+	{
+		auto cond = parseCondExpr();
+	}
+
+	Pointer<Expr> Parser::parseForExpr()
+	{
+		return corrosion::Pointer<Expr>();
+	}
 
 }
