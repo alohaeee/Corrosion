@@ -5,108 +5,108 @@
 namespace corrosion
 {
 
-	Pointer<Expr> Parser::parseBlock()
-	{
-		while (look() == ast::TokenKind::OpenDelim)
-		{
-
-		}
-		return nullptr;
-	}
-	Pointer<Expr> Parser::parseBlockLine()
-	{
-
-		if (look() == ast::TokenKind::Lifetime)
-		{
-			auto lifetime = shift();
-			if (look() == ast::TokenKind::Ident)
-			{
-				auto ident = shift().value();
-				auto data = ident.getData<ast::data::Ident>();
-				auto symbol = data.symbol;
-				if (symbol.isKeyword())
-				{
-					switch (symbol.data())
-					{
-					case kw::While:
-						break;
-					case kw::Loop:
-						break;
-					case kw::For:
-						break;
-					}
-				}
-			}
-			m_session.errorSpan(lifetime->span, "expected while/for/loop after lifetime");
-			return nullptr;
-		}
-		else
-		{
-			if (auto looked = look().value();look())
-			{
-				switch (looked)
-				{
-				case ast::TokenKind::Semi:
-					// Return a NULL expression, nothing here.
-					return nullptr;
-				case ast::TokenKind::Ident:
-				{
-					auto ident = shift().value();
-					auto data = ident.getData<ast::data::Ident>();
-					auto symbol = data.symbol;
-					if (symbol.isKeyword())
-					{
-						switch (symbol.data())
-						{
-						case kw::While:
-							break;
-						case kw::Loop:
-							break;
-						case kw::For:
-							break;
-						case kw::If:
-							break;
-						case kw::Match:
-							break;
-						case kw::Return:
-						case kw::Break:
-						case kw::Continue:
-							break;
-
-						}
-					}
-				}
-
-				}
-			}
-
-		}
-		return nullptr;
-	}
-	Pointer<Expr> Parser::parseWhileExpr()
-	{
-		if (look() == ast::TokenKind::Ident)
-		{
-			auto ident = shift().value();
-			auto data = ident.getData<ast::data::Ident>();
-			auto symbol = data.symbol;
-			switch (symbol.data())
-			{
-				// let expr
-			case kw::Let:
-				m_session.warnSpan(token(-1)->span, "let pattern in while can not be parsed");
-			default:
-				break;
-				//ParseExpr()
-			}
-		}
-		return nullptr;
-	}
-
+//	Pointer<Expr> Parser::parseBlock()
+//	{
+//		while (look() == ast::TokenKind::OpenDelim)
+//		{
+//
+//		}
+//		return nullptr;
+//	}
+//	Pointer<Expr> Parser::parseBlockLine()
+//	{
+//
+//		if (look() == ast::TokenKind::Lifetime)
+//		{
+//			auto lifetime = shift();
+//			if (look() == ast::TokenKind::Ident)
+//			{
+//				auto ident = shift().value();
+//				auto data = ident.getData<ast::data::Ident>();
+//				auto symbol = data.symbol;
+//				if (symbol.isKeyword())
+//				{
+//					switch (symbol.data())
+//					{
+//					case kw::While:
+//						break;
+//					case kw::Loop:
+//						break;
+//					case kw::For:
+//						break;
+//					}
+//				}
+//			}
+//			m_session.errorSpan(lifetime->span, "expected while/for/loop after lifetime");
+//			return nullptr;
+//		}
+//		else
+//		{
+//			if (auto looked = look().value();look())
+//			{
+//				switch (looked)
+//				{
+//				case ast::TokenKind::Semi:
+//					// Return a NULL expression, nothing here.
+//					return nullptr;
+//				case ast::TokenKind::Ident:
+//				{
+//					auto ident = shift().value();
+//					auto data = ident.getData<ast::data::Ident>();
+//					auto symbol = data.symbol;
+//					if (symbol.isKeyword())
+//					{
+//						switch (symbol.data())
+//						{
+//						case kw::While:
+//							break;
+//						case kw::Loop:
+//							break;
+//						case kw::For:
+//							break;
+//						case kw::If:
+//							break;
+//						case kw::Match:
+//							break;
+//						case kw::Return:
+//						case kw::Break:
+//						case kw::Continue:
+//							break;
+//
+//						}
+//					}
+//				}
+//
+//				}
+//			}
+//
+//		}
+//		return nullptr;
+//	}
+//	Pointer<Expr> Parser::parseWhileExpr()
+//	{
+//		if (look() == ast::TokenKind::Ident)
+//		{
+//			auto ident = shift().value();
+//			auto data = ident.getData<ast::data::Ident>();
+//			auto symbol = data.symbol;
+//			switch (symbol.data())
+//			{
+//				// let expr
+//			case kw::Let:
+//				m_session.warnSpan(token(-1)->span, "let pattern in while can not be parsed");
+//			default:
+//				break;
+//				//ParseExpr()
+//			}
+//		}
+//		return nullptr;
+//	}
+//
 
 	Pointer<Expr> Parser::parseAssocExprWith(std::size_t minPrec, Pointer<Expr> lhs)
 	{
-		if (token()->isRangeKind())
+		if (token.isRangeKind())
 		{
 			parsePrefixRangeExpr();
 		}
@@ -116,10 +116,10 @@ namespace corrosion
 		}
 
 		std::optional<AssocOp> op;
-		for (auto tok = token(); tok && (op = AssocOp::fromToken(tok.value())) && op;)
+		this->expectedTokens.emplace_back(TokenKind::BinOp,data::BinOp{});
+		for (;(op=AssocOp::fromToken(token))&& op;)
 		{
-
-			auto cur_op_span = tok->span;
+			auto cur_op_span = token.span;
 			auto prec = op->precedence();
 			if (prec < minPrec)
 			{
@@ -198,14 +198,14 @@ namespace corrosion
 	}
 	Pointer<Expr> Parser::parsePrefixExpr()
 	{
-		auto lo = this->token()->span;
-		switch(this->token()->kind)
+		auto lo = token.span;
+		switch(token.kind)
 		{
 		case TokenKind::Not:
 			return this->parseUnaryExpr(lo,UnOp::Not); // `!expr`
 		case TokenKind::BinOp:
 		{
-			auto data = this->token()->getData<ast::data::BinOp>();
+			auto data = token.getData<ast::data::BinOp>();
 			switch(data.kind)
 			{
 			case data::BinOp::Minus:
@@ -242,15 +242,96 @@ namespace corrosion
 	Pointer<Expr> Parser::parseUnaryExpr(Span lo, UnOp op)
 	{
 		auto&& [ex,span] = parsePrefixExprCommon(lo);
-		return MakePointer<Expr>{std::move(span),ExprKind::Unary{op,ex}};
+		return MakePointer<Expr>(span,ExprKind::Unary{op,ex});
 	}
 	Pointer<Expr> Parser::parseBottomExpr()
 	{
-		auto lo = this->token()->span;
-		switch()
+		auto lo = token.span;
+		if(token.kind == TokenKind::Literal)
 		{
-
+			//this->parseLitExpr();
 		}
+		else if(check(TokenKind::OpenDelim,data::Delim{data::Delim::Paren}))
+		{
+			//this->parseTupleParensExpr();
+		}
+		else if(check(TokenKind::OpenDelim,data::Delim{data::Delim::Brace}))
+		{
+			//this->parseBlockExpr();
+		}
+//		else if(check(TokenKind::BinOp,data::BinOp{data::BinOp::Or})||check(TokenKind::OrOr))
+//		{
+//			//this->parseClosureExpr();
+//		}
+//		else if(check(TokenKind::BinOp,data::BinOp{data::BinOp::Or})||check(TokenKind::OrOr))
+//		{
+//			//this->eatLt();
+//		}
+		else if(check(TokenKind::OpenDelim,data::Delim{data::Delim::Bracket}))
+		{
+			//this->parseArrayOrRepeatExpr();
+		}
+//		else if(eat_lit())
+//		{
+//			this->parseQPath();
+//		}
+		else if(checkPath())
+		{
+			//this->parseStartPathExpr();
+		}
+//		else if(checkKeyword(kw::Move) || checkKeyword(kw::Static))
+//		{
+//			//this->parseClosureExpr();
+//		}
+		else if(eatKeyword(kw::If))
+		{
+			//this->parseIfExpr();
+		}
+		else if(eatKeyword(kw::For))
+		{
+			//this->parseForExpr();
+		}
+		else if(eatKeyword(kw::While))
+		{
+			//this->parseWhileExpr();
+		}
+		else if(auto label = eatLabel(); label)
+		{
+			//this->parseLabelExpr();
+		}
+		else if(eatKeyword(kw::Loop))
+		{
+			//this->parseLoopExpr();
+		}
+		else if(eatKeyword(kw::Continue))
+		{
+			auto cont = ExprKind::Continue{eatLabel()};
+			//
+		}
+		else if(eatKeyword(kw::Return))
+		{
+			//this->parseReturnExpr();
+		}
+		else if(eatKeyword(kw::Break))
+		{
+			//this->parseBreakExpr();
+		}
+//		else if(eatKeyword(kw::Let))
+//		{
+//			//this->parseLetExpr();
+//		}
+		else
+		{
+			return parseLitExpr();
+		}
+
+	}
+	Pointer<Expr> Parser::parseLitExpr()
+	{
+		auto lo = token.span;
+		auto lit = Literal::fromToken(token);
+		this->shift();
+		return MakePointer<Expr>(lo,std::move(lit));
 	}
 
 }

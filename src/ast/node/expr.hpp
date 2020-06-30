@@ -222,6 +222,10 @@ namespace corrosion
 		{
 			std::optional<Pointer<Expr>> expr;
 		};
+		struct Error
+		{
+
+		};
 	};
 
 	struct Expr
@@ -235,7 +239,10 @@ namespace corrosion
 		KindUnion kind{};
 		NodeId id;
 
-		Expr(Span&& span, KindUnion&& kind, NodeId&& id = DUMMY_NODE_ID) : span(span), kind(kind), id(id)
+		Expr(const Span& span, KindUnion&& kind, NodeId id = DUMMY_NODE_ID) : span(span), kind(kind), id(id)
+		{
+		}
+		Expr(Span&& span, KindUnion&& kind, NodeId id = DUMMY_NODE_ID) : span(span), kind(kind), id(id)
 		{
 		}
 	};

@@ -16,6 +16,15 @@ namespace corrosion
 	struct TokenStream
 	{
 		void push(TreeAndJoint&& tree);
+		[[nodiscard]] inline std::size_t size() const noexcept
+		{
+			return treeAndJoint.size();
+		}
+		[[nodiscard]] inline const TreeAndJoint& operator[](std::size_t n) const
+		{
+			return treeAndJoint[n];
+		}
+
 		std::vector<TreeAndJoint> treeAndJoint;
 	};
 	struct DelimSpan
@@ -79,30 +88,57 @@ namespace corrosion
 		{
 
 		}
-		TokenTree openTT(DelimSpan span, ast::data::Delim kind)
+		TokenTree(const TokenTree &tree) : data{tree.data}
+		{}
+		TokenTree& operator=(const TokenTree& tree)
+		{
+			this->data = tree.data;
+			return *this;
+		}
+		TokenTree& operator=(TokenTree&& tree)
+		{
+			this->data = std::move(tree.data);
+			return *this;
+		}
+		static TokenTree openTT(DelimSpan span, ast::data::Delim kind) noexcept
 		{
 			return ast::Token{ ast::TokenKind::OpenDelim, span.open, kind };
 		}
-		TokenTree closeTT(DelimSpan span, ast::data::Delim kind)
+		static TokenTree closeTT(DelimSpan span, ast::data::Delim kind) noexcept
 		{
 			return ast::Token(ast::TokenKind::CloseDelim, span.close, kind);
 		}
 
-		std::variant<ast::Token, Delimited> data;
+		std::variant<ast::Token, Delimited> data{};
 	};
 
 
-	class StreamCursor
+	class TreeCursor
 	{
+	 public:
+		[[nodiscard]] std::optional<TreeAndJoint> nextWithJoint() noexcept
+		{
+			if(m_index < stream.size())
+			{
+				return stream[m_index++];
+			}
+			return std::nullopt;
+		}
+		[[nodiscard]] std::optional<TreeAndJoint> lookahead(std::size_t n) const noexcept
+		{
+			if(n+m_index < stream.size())
+			{
+				return stream[n+m_index];
+			}
+			return std::nullopt;
+		}
+		TreeCursor(TokenStream&& stream) : stream{stream}
+		{
 
-//		shift()
-//		{
-//
-//		}
+		}
 		TokenStream stream;
 	 protected:
-		std::size_t m_index;
-
+		std::size_t m_index{0};
 	};
 
 }

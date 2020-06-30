@@ -137,6 +137,10 @@ namespace corrosion::ast
 					return "";
 				}
 			}
+			friend bool operator==(const Delim& lhs,const Delim& rhs)
+			{
+				return lhs.kind == rhs.kind;
+			}
 		};
 		struct BinOp
 		{
@@ -180,6 +184,10 @@ namespace corrosion::ast
 				default:
 					return "";
 				}
+			}
+			friend bool operator==(const BinOp& lhs,const BinOp& rhs)
+			{
+				return rhs.kind == lhs.kind;
 			}
 		};
 
@@ -227,6 +235,10 @@ namespace corrosion::ast
 					return true;
 				}
 				return false;
+			}
+			friend bool operator==(const Literal& lhs,const Literal& rhs)
+			{
+				return lhs.kind == rhs.kind &&lhs.symbol.data() == rhs.symbol.data() && lhs.suffix == rhs.suffix;
 			}
 		};
 		struct Ident
@@ -278,15 +290,26 @@ namespace corrosion::ast
 					return false;
 				}
 			}
+			friend bool operator==(const Ident& lhs,const Ident& rhs)
+			{
+				return lhs.symbol.data() == rhs.symbol.data();
+			}
 		};
 
 		struct Lifetime
 		{
 			Symbol symbol;
+			friend bool operator==(const Lifetime& lhs, const Lifetime& rhs)
+			{
+				return lhs.symbol.data() == rhs.symbol.data();
+			}
 		};
 		struct Empty
 		{
-
+			friend bool operator==(const Empty& lhs,const Empty& rhs)
+			{
+				return true;
+			}
 		};
 	}
 	using TokenData = std::variant<data::Delim,
@@ -306,6 +329,14 @@ namespace corrosion::ast
 		Token(TokenKind kind = TokenKind::Whitespace, Span span = {}, TokenData data = data::Empty{}) :
 			kind{ kind }, span{ span }, data{ data }
 		{
+		}
+		bool isDummy() const noexcept
+		{
+			if(kind == TokenKind::Whitespace && span.isDummy() && std::holds_alternative<data::Empty>(data))
+			{
+				return true;
+			}
+			return false;
 		}
 		bool isOp() const noexcept
 		{
@@ -338,6 +369,31 @@ namespace corrosion::ast
 				{
 					return true;
 				}
+			}
+			return false;
+		}
+		bool isQPathStart()
+		{
+			if(kind == TokenKind::BinOp)
+			{
+				return getData<data::BinOp>().kind == data::BinOp::Shl;
+			}
+			else if(kind == TokenKind::Lt)
+			{
+				return true;
+			}
+			return false;
+		}
+		bool isPathStart()
+		{
+			if(kind == TokenKind::ModSep || isQPathStart())
+			{
+				return true;
+			}
+			else if(kind == TokenKind::Ident)
+			{
+				auto sym = getData<data::Ident>().symbol;
+				return sym.isPathSegment() || true && !sym.isKeyword();
 			}
 			return false;
 		}
@@ -437,7 +493,7 @@ namespace corrosion::ast
 		{
 			return kind == TokenKind::Ident;
 		}
-		bool isKeyword(std::uint32_t sym)
+		bool isKeyword(SymType sym)
 		{
 			if (isIdent())
 			{
@@ -483,6 +539,16 @@ namespace corrosion::ast
 				return true;
 			}
 			return false;
+		}
+
+		std::optional<Ident> lifetime()
+		{
+			if(kind == TokenKind::Lifetime)
+			{
+				auto data = getData<data::Lifetime>();
+				return Ident{data.symbol,span};
+			}
+			return std::nullopt;
 		}
 
 		std::optional<Token> glue(Token joint)
