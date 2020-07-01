@@ -194,6 +194,7 @@ namespace corrosion
 	}
 	Pointer<Expr> Parser::parsePrefixRangeExpr()
 	{
+		session.criticalSpan(token.span, "Range Expr are not implemented");
 		return nullptr;
 	}
 	Pointer<Expr> Parser::parsePrefixExpr()
@@ -231,7 +232,7 @@ namespace corrosion
 	Pointer<Expr> Parser::parseDotOrCallExpr()
 	{
 		auto base = this->parseBottomExpr();
-		return corrosion::Pointer<Expr>();
+		return parseDotOrCallExprWith(base,base->span);
 	}
 	Spanned<Pointer<Expr>> Parser::parsePrefixExprCommon(Span lo)
 	{
@@ -367,6 +368,22 @@ namespace corrosion
 	{
 		return parseAssocExprWith(0,nullptr);
 	}
-
+	Pointer<Expr> Parser::parseDotOrCallExprWith(Pointer<Expr> e, Span lo)
+	{
+		while(true)
+		{
+			if(eat(TokenKind::Question))
+			{
+				session.criticalSpan(prevToken.span, "Question exprs are not implemented!");
+				continue;
+			}
+			if(eat(TokenKind::Dot))
+			{
+				session.criticalSpan(prevToken.span, "Method call are not implemented!");
+				continue;
+			}
+			if(Expr::requiresSemiToBeStmt())
+		}
+	}
 
 }

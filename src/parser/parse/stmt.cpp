@@ -44,8 +44,8 @@ namespace corrosion
 	{
 		auto lo = prevToken.span;
 		auto pat = parseTopPat(true);
-		std::optional<Pointer<Ty>> ty;
-		std::optional<Pointer<Expr>> ex;
+		Pointer<Ty> ty;
+		Pointer<Expr> ex;
 		if(eat(TokenKind::Colon))
 		{
 			ty = parseTy();
@@ -54,7 +54,7 @@ namespace corrosion
 		{
 			ex = parseExpr();
 		}
-		return MakePointer<Local>(lo.to(prevToken.span),pat,std::move(ty),std::move(ex),DUMMY_NODE_ID);
+		return MakePointer<Local>(lo.to(prevToken.span),pat,ty,ex,DUMMY_NODE_ID);
 	}
 	Pointer<Block> Parser::parseBlockCommon()
 	{

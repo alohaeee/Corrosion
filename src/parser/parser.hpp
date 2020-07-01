@@ -247,6 +247,7 @@ namespace corrosion
 		Pointer<Expr> parsePrefixRangeExpr();
 		Pointer<Expr> parsePrefixExpr();
 		Pointer<Expr> parseDotOrCallExpr();
+		Pointer<Expr> parseDotOrCallExprWith(Pointer<Expr> e, Span lo);
 		Pointer<Expr> parseBottomExpr();
 		Spanned<Pointer<Expr>> parsePrefixExprCommon(Span lo);
 		Pointer<Expr> parseUnaryExpr(Span lo, UnOp op);

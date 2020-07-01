@@ -186,8 +186,8 @@ namespace corrosion
 		/// A range (e.g., `1..2`, `1..`, `..2`, `1..=2`, `..=2`).
 		struct Range
 		{
-			std::optional<Pointer<Expr>> lhs;
-			std::optional<Pointer<Expr>> rhs;
+			Pointer<Expr> lhs;
+			Pointer<Expr> rhs;
 			RangeLimits limits;
 		};
 		/// Variable reference, possibly containing `::` and/or type
@@ -210,7 +210,7 @@ namespace corrosion
 		struct Break
 		{
 			std::optional<Label> label;
-			std::optional<Pointer<Expr>> expr;
+			Pointer<Expr> expr;
 		};
 		/// A `continue`, with an optional label.
 		struct Continue
@@ -220,7 +220,12 @@ namespace corrosion
 		/// A `return`, with an optional value to be returned.
 		struct Return
 		{
-			std::optional<Pointer<Expr>> expr;
+			Pointer<Expr> expr;
+		};
+		/// A try expression (`expr?`).
+		struct Try
+		{
+			Pointer<Expr> expr;
 		};
 		struct Error
 		{
@@ -231,11 +236,29 @@ namespace corrosion
 	struct Expr
 	{
 		Span span;
-		using KindUnion = std::variant<ExprKind::Array,ExprKind::FunctionCall,ExprKind::Binary,
-			ExprKind::Unary,ExprKind::Cast, ExprKind::Literal,ExprKind::Let,ExprKind::If,
-			ExprKind::While,ExprKind::ForLoop,ExprKind::Loop,ExprKind::Match,ExprKind::Block,
-			ExprKind::Assign,ExprKind::AssignOp,ExprKind::Index,ExprKind::Range,ExprKind::Path,
-			ExprKind::AddrOf,ExprKind::Break,ExprKind::Continue,ExprKind::Return>;
+		using KindUnion = std::variant<ExprKind::Array,
+									   ExprKind::FunctionCall,
+									   ExprKind::Binary,
+									   ExprKind::Unary,
+									   ExprKind::Cast,
+									   ExprKind::Literal,
+									   ExprKind::Let,
+									   ExprKind::If,
+									   ExprKind::While,
+									   ExprKind::ForLoop,
+									   ExprKind::Loop,
+									   ExprKind::Match,
+									   ExprKind::Block,
+									   ExprKind::Assign,
+									   ExprKind::AssignOp,
+									   ExprKind::Index,
+									   ExprKind::Range,
+									   ExprKind::Path,
+									   ExprKind::AddrOf,
+									   ExprKind::Break,
+									   ExprKind::Continue,
+									   ExprKind::Try,
+									   ExprKind::Return>;
 		KindUnion kind{};
 		NodeId id;
 
@@ -244,6 +267,34 @@ namespace corrosion
 		}
 		Expr(Span&& span, KindUnion&& kind, NodeId id = DUMMY_NODE_ID) : span(span), kind(kind), id(id)
 		{
+		}
+		bool requiresSemiToBeStmt()
+		{
+			return std::visit([](auto&& arg) -> bool
+			{
+			  using T = std::decay_t<decltype(arg)>;
+			  if constexpr(std::is_same_v<T,ExprKind::If>)
+			  {
+			  }
+			  else if constexpr(std::is_same_v<T,ExprKind::Match>)
+			  {
+			  }
+			  else if constexpr (std::is_same_v<T,ExprKind::While>)
+			  {
+			  }
+			  else if constexpr (std::is_same_v<T,ExprKind::Loop>)
+			  {
+			  }
+			  else if constexpr (std::is_same_v<T,ExprKind::ForLoop>)
+			  {
+			  }
+			  else
+			  {
+			  	return false;
+			  }
+			  return true;
+
+			}, kind);
 		}
 	};
 }

@@ -10,10 +10,15 @@ namespace corrosion
 	{
 		Span span;
 		Pointer<Pat> pat;
-		std::optional<Pointer<Ty>> type;
+		Pointer<Ty> type;
 		/// Initializer expression to set the value, if any.
-		std::optional<Pointer<Expr>> init;
+		Pointer<Expr> init;
 		NodeId id;
+		Local(const Span& span, Pointer<Pat>& pat, Pointer<Ty>& type,Pointer<Expr>& init,NodeId id = DUMMY_NODE_ID) :
+			span{span}, pat{pat}, type{type}, init{init}, id{id}
+		{
+
+		}
 	};
 
 	struct StmtKind
