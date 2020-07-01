@@ -10,7 +10,7 @@ namespace corrosion
 {
 	struct BareFnType
 	{
-
+		Pointer<FnDecl> decl;
 	};
 
 	struct MutType
@@ -51,11 +51,13 @@ namespace corrosion
 		/// Type parameters are stored in the `Path` itself.
 		struct Path
 		{
-
+			//std::optional<QPath> qpath;
+			corrosion::Path path;
 		};
 		/// A bare function (e.g., `fn(usize) -> bool`).
 		struct BareFn
 		{
+			Pointer<BareFnType> ptr;
 		};
 		/// Inferred type of a `self` or `&self` argument in a method.
 		struct ImplicitSelf
@@ -68,9 +70,14 @@ namespace corrosion
 	};
 	struct Ty
 	{
-		NodeId id;
-		TyKind kind;
 		Span span;
+		using KindUnion = std::variant<TyKind::Array,TyKind::Path, TyKind::BareFn, TyKind::Slice>;
+		KindUnion kind;
+
+		NodeId id;
+
+		Ty(const Span& span, KindUnion&& kind, NodeId id = DUMMY_NODE_ID) : span{span},kind{kind},id{id}
+		{}
 	};
 }
 

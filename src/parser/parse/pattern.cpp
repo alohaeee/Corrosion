@@ -45,7 +45,7 @@ namespace corrosion
 			}
 			else
 			{
-				m_session.errorSpan(lo.to(prevToken.span), "Expected pattern but found:");
+				session.errorSpan(lo.to(prevToken.span), "Expected pattern but found:");
 				return nullptr;
 			}
 
@@ -89,7 +89,7 @@ namespace corrosion
 		auto pat = parsePatWithRangePat(false);
 		if(!eat(TokenKind::CloseDelim,data::Delim{data::Delim::Paren}))
 		{
-			m_session.errorSpan(pat->span, "paren pattern must have ')'");
+			session.errorSpan(pat->span, "paren pattern must have ')'");
 		}
 		return PatKind::Paren{ pat };
 	}

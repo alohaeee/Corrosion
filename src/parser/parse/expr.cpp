@@ -181,7 +181,7 @@ namespace corrosion
 				case AssocOp::Colon:
 				case AssocOp::DotDot:
 				case AssocOp::DotDotEq:
-					m_session.criticalSpan(span,"COMPILER BUG: AssocOp should have been handled by special case");
+					session.criticalSpan(span,"COMPILER BUG: AssocOp should have been handled by special case");
 					break;
 				}
 			}
@@ -213,13 +213,13 @@ namespace corrosion
 			case data::BinOp::Star:
 				return this->parseUnaryExpr(lo,UnOp::Deref); // `*expr`
 			case data::BinOp::And:
-				m_session.errorSpan(lo,"TODO: can't parse borrow expr");
+				session.errorSpan(lo,"TODO: can't parse borrow expr");
 				//return this->parseBorrowExpr()
 				return nullptr;
 			}
 		}
 		case TokenKind::AndAnd:
-			m_session.errorSpan(lo,"TODO: can't parse borrow expr");
+			session.errorSpan(lo,"TODO: can't parse borrow expr");
 			//return this->parseBorrowExpr()
 			return nullptr;
 		default:
@@ -359,5 +359,14 @@ namespace corrosion
 		}
 		return lit;
 	}
+	AnonConst Parser::parseAnonConstExpr()
+	{
+		return AnonConst{DUMMY_NODE_ID,parseExpr()};
+	}
+	Pointer<Expr> Parser::parseExpr()
+	{
+		return parseAssocExprWith(0,nullptr);
+	}
+
 
 }

@@ -94,7 +94,7 @@ namespace corrosion
 		{
 			if(this->prevToken.kind == TokenKind::Eof)
 			{
-				this->m_session.criticalSpan(nextTok.span,"attempted to bump the parser past EOF (may be stuck in a loop)");
+				this->session.criticalSpan(nextTok.span,"attempted to bump the parser past EOF (may be stuck in a loop)");
 			}
 			this->prevToken = std::move(this->token);
 			this->token = nextTok;
@@ -208,7 +208,7 @@ namespace corrosion
 				this->shift();
 				return ident;
 			}
-			m_session.criticalSpan(token.span,"Trying to eat ident, but find: ");
+			session.criticalSpan(token.span,"Trying to eat ident, but find: ");
 		}
 
 		void expect(TokenKind kind, TokenData&& data = data::Empty{})
@@ -219,7 +219,7 @@ namespace corrosion
 				{
 					this->shift();
 				}
-				m_session.criticalSpan(token.span,
+				session.criticalSpan(token.span,
 					fmt::format("Expected token: {} , but found: ",Token{kind,{},data}.printable()));
 			}
 			else
@@ -232,7 +232,7 @@ namespace corrosion
 				msg.pop_back();
 				msg.pop_back();
 				msg.pop_back();
-				m_session.criticalSpan(token.span,fmt::format("Expected: {}, \n but found:",msg));
+				session.criticalSpan(token.span,fmt::format("Expected: {}, \n but found:",msg));
 			}
 		}
 
@@ -242,6 +242,7 @@ namespace corrosion
 //		Pointer<Expr> parseBlockLine();
 //
 //		Pointer<Expr> parseWhileExpr();
+		Pointer<Expr> parseExpr();
 		Pointer<Expr> parseAssocExprWith(std::size_t minPrec, Pointer<Expr> lhs);
 		Pointer<Expr> parsePrefixRangeExpr();
 		Pointer<Expr> parsePrefixExpr();
@@ -255,6 +256,7 @@ namespace corrosion
 		Pointer<Expr> parseWhileExpr();
 
 		Pointer<Expr> parseForExpr();
+		AnonConst parseAnonConstExpr();
 
 		Pointer<Block> parseBlockCommon();
 
@@ -272,13 +274,24 @@ namespace corrosion
 		PatKind::Ident parsePatIdentRef();
 		PatKind::Ident parsePatIdent(BindingMode bindingMode);
 
+
+
+		Pointer<Ty> parseTy();
+		Ty::KindUnion parseArrayTy();
+
+
+
+		Path parsePath();
+		void parsePathSegments(std::vector<PathSegment>& segments);
+		Ident parsePathSegmentIdent();
+
 		//diagnistics
 
 		std::optional<Pointer<Expr>> checkNoChainedComparison(Pointer<Expr> innerOp,Spanned<AssocOp> outerOp);
 
 
 		TokenStreamV m_tokenStream{};
-		ParseSession m_session;
+		ParseSession session;
 		TokenStream tokens;
 
 

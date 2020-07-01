@@ -11,16 +11,16 @@ namespace corrosion
 		}
 		else if(isKwFollowedByIdent(kw::Mut))
 		{
-			m_session.errorSpan(lo,"missing keyword let");
+			session.errorSpan(lo,"missing keyword let");
 			//return parseLocal(lo
 		}
 		else if(isKwFollowedByIdent(kw::Auto))
 		{
-			m_session.errorSpan(lo,"write `let` instead of `auto` to introduce a new variable");
+			session.errorSpan(lo,"write `let` instead of `auto` to introduce a new variable");
 		}
 		else if(isKwFollowedByIdent(sym::Var))
 		{
-			m_session.errorSpan(lo,"write `let` instead of `var` to introduce a new variable");
+			session.errorSpan(lo,"write `let` instead of `var` to introduce a new variable");
 		}
 //		else if(auto item = parseItemCommon(); parseItemCommon())
 //		{
@@ -44,16 +44,23 @@ namespace corrosion
 	{
 		auto lo = prevToken.span;
 		auto pat = parseTopPat(true);
+		std::optional<Pointer<Ty>> ty;
+		std::optional<Pointer<Expr>> ex;
 		if(eat(TokenKind::Colon))
 		{
+			ty = parseTy();
 		}
-		return nullptr;
+		if(eat(TokenKind::Eq))
+		{
+			ex = parseExpr();
+		}
+		return MakePointer<Local>(lo.to(prevToken.span),pat,std::move(ty),std::move(ex),DUMMY_NODE_ID);
 	}
 	Pointer<Block> Parser::parseBlockCommon()
 	{
 		if(!eat(TokenKind::OpenDelim, data::Delim{data::Delim::Brace}))
 		{
-			m_session.errorSpan(token.span, "Expected to meet {, but found:");
+			session.errorSpan(token.span, "Expected to meet {, but found:");
 		}
 		while(!eat(TokenKind::CloseDelim, data::Delim{data::Delim::Brace}))
 		{

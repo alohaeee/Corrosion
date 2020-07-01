@@ -8,12 +8,12 @@ namespace corrosion
 	/// Local represents a `let` statement, e.g., `let <pat>:<ty> = <expr>;`.
 	struct Local
 	{
-		NodeId id;
+		Span span;
 		Pointer<Pat> pat;
 		std::optional<Pointer<Ty>> type;
 		/// Initializer expression to set the value, if any.
-		std::optional<Pointer<Expr>> expr;
-		Span span;
+		std::optional<Pointer<Expr>> init;
+		NodeId id;
 	};
 
 	struct StmtKind
@@ -41,7 +41,6 @@ namespace corrosion
 	};
 	struct Stmt
 	{
-
 		using KindUnion = std::variant<StmtKind::Local,StmtKind::Item,StmtKind::Expr,StmtKind::Semi,StmtKind::Empty>;
 		NodeId id;
 		StmtKind kind;

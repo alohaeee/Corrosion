@@ -16,17 +16,17 @@ namespace corrosion
 		NodeId id;
 		Ident ident;
 	};
-	struct PathSegmenth
+	struct PathSegment
 	{
 		Ident ident;
 		NodeId id;
 
-		static PathSegmenth fromIdent(Ident ident)
+		static PathSegment fromIdent(Ident ident)
 		{
 
-			return PathSegmenth{ ident, DUMMY_NODE_ID };
+			return PathSegment{ ident, DUMMY_NODE_ID };
 		}
-		static PathSegmenth pathRoot(Span span)
+		static PathSegment pathRoot(Span span)
 		{
 			return fromIdent(Ident{ kw::PathRoot, span });
 		}
@@ -35,13 +35,13 @@ namespace corrosion
 	struct Path
 	{
 		Span span;
-		std::vector<PathSegmenth> segments;
+		std::vector<PathSegment> segments;
 
 		// Convert a span and an identifier to the corresponding
 		// one-segment path.
 		static Path fromIdent(Ident ident)
 		{
-			return Path{ ident.span(), { PathSegmenth::fromIdent(ident) }};
+			return Path{ ident.span(), { PathSegment::fromIdent(ident) }};
 		}
 		bool isGlobal() const
 		{
@@ -56,10 +56,7 @@ namespace corrosion
 		Span span;
 	};
 
-	struct FnHeader
-	{
 
-	};
 	struct Param
 	{
 		Pointer<Ty> type;
@@ -67,6 +64,10 @@ namespace corrosion
 		NodeId id;
 		Span span;
 		bool isPlaceholder;
+	};
+	struct FnHeader
+	{
+
 	};
 	struct FnDecl
 	{

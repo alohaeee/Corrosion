@@ -45,7 +45,7 @@ namespace corrosion
 	/// A segment of a path: an identifier, an optional lifetime, and a set of types.
 	///
 	/// E.g., `std`, `String` or `Box<T>`.
-	struct PathSegmenth;
+	struct PathSegment;
 
 	/// A "Path" is essentially Rust's notion of a name.
 	///
