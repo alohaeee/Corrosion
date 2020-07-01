@@ -326,7 +326,11 @@ namespace corrosion::ast
 		TokenData data;
 
 	 public:
-		Token(TokenKind kind = TokenKind::Whitespace, Span span = {}, TokenData data = data::Empty{}) :
+		explicit Token(TokenKind kind = TokenKind::Whitespace, Span span = {}, TokenData&& data = data::Empty{}) :
+			kind{ kind }, span{ span }, data{ data }
+		{
+		}
+		Token(TokenKind kind, Span span, const TokenData& data) :
 			kind{ kind }, span{ span }, data{ data }
 		{
 		}

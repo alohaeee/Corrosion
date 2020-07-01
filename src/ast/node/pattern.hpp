@@ -32,7 +32,7 @@ namespace corrosion
 		}kind;
 		Mutability mut;
 	};
-	struct PatternKind
+	struct PatKind
 	{
 		/// Represents a wildcard pattern (`_`).
 		struct Wild
@@ -42,29 +42,49 @@ namespace corrosion
 		/// or a unit struct/variant pattern, or a const pattern (in the last two cases the third
 		/// field must be `None`). Disambiguation cannot be done with parser alone, so it happens
 		/// during name resolution.
-		struct PIdent
+		struct Ident
 		{
 			BindingMode bindingMode;
-			Ident ident;
-			std::optional<Pointer<Pattern>> pat;
+			corrosion::Ident ident;
+			std::optional<Pointer<Pat>> pat;
 		};
 		/// An or-pattern `A | B | C`.
 		/// Invariant: `pats.len() >= 2`.
 		struct Or
 		{
-			std::vector<Pointer<Pattern>> pats;
+			std::vector<Pointer<Pat>> pats;
+		};
+		/// A reference pattern (e.g., `&mut (a, b)`).
+		struct Ref
+		{
+			Pointer<Pat> pat;
+			Mutability mut;
+		};
+		struct Literal
+		{
+			Pointer<Expr> expr;
 		};
 
 		struct Path
 		{
 
 		};
+		/// Parentheses in patterns used for grouping (i.e., `(PAT)`).
+		struct Paren
+		{
+			Pointer<Pat> pat;
+		};
 	};
-	struct Pattern
+	struct Pat
 	{
-		NodeId id;
-		PatternKind kind;
 		Span span;
+		using KindUnion = std::variant<PatKind::Wild, PatKind::Ident, PatKind::Or, PatKind::Ref, PatKind::Path,
+			PatKind::Paren,PatKind::Literal>;
+		KindUnion kind;
+		NodeId id;
+
+		Pat(Span span, KindUnion&& kind, NodeId id = DUMMY_NODE_ID) : span{span}, kind{kind}, id{id}
+		{}
 	};
 
 

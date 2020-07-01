@@ -109,7 +109,7 @@ namespace corrosion
 			return ast::Token(ast::TokenKind::CloseDelim, span.close, kind);
 		}
 
-		std::variant<ast::Token, Delimited> data{};
+		std::variant<ast::Token, Delimited> data;
 	};
 
 

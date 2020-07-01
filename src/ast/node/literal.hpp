@@ -257,14 +257,13 @@ namespace corrosion
 			case ast::data::Literal::Bool:
 				assert(lit.symbol.isBoolLiteral());
 				return LiteralKind::Boolean{lit.symbol == kw::True};
-			case ast::data::Literal::Err:
+			default:
 				return LiteralKind::Error{lit.symbol};
 			}
 		}
 	 private:
 		static Literal::KindUnion filterFloatLiteral(Symbol sym, std::optional<Symbol> suffix)
 		{
-			double val;
 			LiteralKind::Float::KindUnion kind;
 			if (suffix)
 			{

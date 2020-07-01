@@ -63,11 +63,11 @@ namespace corrosion
 	// >------Pattern------<
 	enum class Mutability;
 	struct BindingMode;
-	struct PatternKind;
+	struct PatKind;
 	/// The kind of borrow in an `AddrOf` expression,
 	/// e.g., `&place` or `&raw const place`.
 	enum class BorrowKind;
-	struct Pattern;
+	struct Pat;
 	// >------Op------<
 	enum class BinOpKind;
 	struct BinOp;

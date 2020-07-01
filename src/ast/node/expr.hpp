@@ -22,7 +22,7 @@ namespace corrosion
 	struct Arm
 	{
 		/// Match arm pattern, e.g. `10` in `match foo { 10 => {}, _ => {} }`
-		Pointer<Pattern> pat;
+		Pointer<Pat> pat;
 		/// Match arm guard, e.g. `n > 10` in `match foo { n if n > 10 => {}, _ => {} }`
 		std::optional<Pointer<Expr>> guard;
 		/// Match arm body.
@@ -104,7 +104,7 @@ namespace corrosion
 		/// of `if` / `while` expressions. (e.g., `if let 0 = x { .. }`).
 		struct Let
 		{
-			Pointer<Pattern> pat;
+			Pointer<Pat> pat;
 			Pointer<Expr> expr;
 		};
 		/// An `if` block, with an optional `else` block.
@@ -134,7 +134,7 @@ namespace corrosion
 		/// This is desugared to a combination of `loop` and `match` expressions.
 		struct ForLoop
 		{
-			Pointer<Pattern> pat;
+			Pointer<Pat> pat;
 			Pointer<Expr> expr;
 			Pointer<Block> block;
 			std::optional<Label> label;

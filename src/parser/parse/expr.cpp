@@ -322,6 +322,7 @@ namespace corrosion
 //		}
 		else
 		{
+
 			return parseLitExpr();
 		}
 
@@ -340,11 +341,23 @@ namespace corrosion
 	Pointer<Expr> Parser::parseWhileExpr()
 	{
 		auto cond = parseCondExpr();
+		return nullptr;
 	}
 
 	Pointer<Expr> Parser::parseForExpr()
 	{
 		return corrosion::Pointer<Expr>();
+	}
+	Pointer<Expr> Parser::parseLitMaybeMinus()
+	{
+		auto lo = token.span;
+		auto minus_present = eat(TokenKind::BinOp,data::BinOp{data::BinOp::Minus});
+		auto lit = parseLitExpr();
+		if(minus_present && lit)
+		{
+			return MakePointer<Expr>(lo.to(lit->span),ExprKind::Unary{UnOp::Neg,lit});
+		}
+		return lit;
 	}
 
 }

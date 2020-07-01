@@ -9,7 +9,7 @@ namespace corrosion
 	struct Local
 	{
 		NodeId id;
-		Pointer<Pattern> pat;
+		Pointer<Pat> pat;
 		std::optional<Pointer<Ty>> type;
 		/// Initializer expression to set the value, if any.
 		std::optional<Pointer<Expr>> expr;

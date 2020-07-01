@@ -234,7 +234,7 @@ namespace corrosion
 			default:
 			{
 				parseSession->errorSpan(spanToken(), "unknown start of token");
-				return ast::TokenKind::Unknown;
+				kind = ast::TokenKind::Unknown;
 			}
 			}
 			return { kind, spanToken(), data };

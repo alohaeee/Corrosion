@@ -63,7 +63,7 @@ namespace corrosion
 	struct Param
 	{
 		Pointer<Ty> type;
-		Pointer<Pattern> pat;
+		Pointer<Pat> pat;
 		NodeId id;
 		Span span;
 		bool isPlaceholder;

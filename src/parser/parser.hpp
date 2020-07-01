@@ -192,6 +192,50 @@ namespace corrosion
 			return token.isKeyword(kw) && !lookahead(1).isKeyword();
 		}
 
+		Mutability parseMutability()
+		{
+			if(eatKeyword(kw::Mut))
+			{
+				return Mutability::Mut;
+			}
+			return Mutability::Not;
+		}
+		Ident parseIdent()
+		{
+			if(token.isIdent())
+			{
+				auto ident = Ident{token.getData<data::Ident>().symbol,token.span};
+				this->shift();
+				return ident;
+			}
+			m_session.criticalSpan(token.span,"Trying to eat ident, but find: ");
+		}
+
+		void expect(TokenKind kind, TokenData&& data = data::Empty{})
+		{
+			if(expectedTokens.empty())
+			{
+				if(token.kind == kind && data == token.data)
+				{
+					this->shift();
+				}
+				m_session.criticalSpan(token.span,
+					fmt::format("Expected token: {} , but found: ",Token{kind,{},data}.printable()));
+			}
+			else
+			{
+				std::string msg;
+				for(auto &&[kind,data]: expectedTokens)
+				{
+					msg+=(fmt::format("({}) or ",Token{kind,{},data}.printable()));
+				}
+				msg.pop_back();
+				msg.pop_back();
+				msg.pop_back();
+				m_session.criticalSpan(token.span,fmt::format("Expected: {}, \n but found:",msg));
+			}
+		}
+
 
 //
 //		Pointer<Expr> parseBlock();
@@ -206,6 +250,7 @@ namespace corrosion
 		Spanned<Pointer<Expr>> parsePrefixExprCommon(Span lo);
 		Pointer<Expr> parseUnaryExpr(Span lo, UnOp op);
 		Pointer<Expr> parseLitExpr();
+		Pointer<Expr> parseLitMaybeMinus();
 		Pointer<Expr> parseCondExpr();
 		Pointer<Expr> parseWhileExpr();
 
@@ -214,6 +259,18 @@ namespace corrosion
 		Pointer<Block> parseBlockCommon();
 
 		Pointer<Stmt> parseStmtWithoutRecovery();
+		Pointer<Local> parseLocal();
+
+
+
+		inline Pointer<Pat> parsePat();
+		Pointer<Pat> parseTopPat(bool gateOr);
+		Pointer<Pat> parsePathWithOr(bool gateOr);
+		Pointer<Pat> parsePatWithRangePat(bool allowRangePat);
+		PatKind::Ref parsePatDeref();
+		PatKind::Paren parsePatParen();
+		PatKind::Ident parsePatIdentRef();
+		PatKind::Ident parsePatIdent(BindingMode bindingMode);
 
 		//diagnistics
 
@@ -229,7 +286,7 @@ namespace corrosion
 		Token token;
 		/// The previous token.
 		Token prevToken;
-		std::vector<std::pair<TokenKind,std::optional<TokenData>>> expectedTokens;
+		std::vector<std::pair<TokenKind,TokenData>> expectedTokens;
 		TokenCursor tokenCursor;
 
 	 	//Item root;

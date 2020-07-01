@@ -9,19 +9,19 @@ namespace corrosion
 		{
 			//return parseLocal(lo)
 		}
-//		else if(isKwFollowedByIdent(kw::Mut))
-//		{
-//			//m_session.errorSpan(lo)
-//			//return parseLocal(lo
-//		}
-//		else if(isKwFollowedByIdent(kw::Auto))
-//		{
-//
-//		}
-//		else if(isKwFollowedByIdent(sym::Var))
-//		{
-//
-//		}
+		else if(isKwFollowedByIdent(kw::Mut))
+		{
+			m_session.errorSpan(lo,"missing keyword let");
+			//return parseLocal(lo
+		}
+		else if(isKwFollowedByIdent(kw::Auto))
+		{
+			m_session.errorSpan(lo,"write `let` instead of `auto` to introduce a new variable");
+		}
+		else if(isKwFollowedByIdent(sym::Var))
+		{
+			m_session.errorSpan(lo,"write `let` instead of `var` to introduce a new variable");
+		}
 //		else if(auto item = parseItemCommon(); parseItemCommon())
 //		{
 //
@@ -37,6 +37,15 @@ namespace corrosion
 		else
 		{
 			/// OSHIBKA
+		}
+		return nullptr;
+	}
+	Pointer<Local> Parser::parseLocal()
+	{
+		auto lo = prevToken.span;
+		auto pat = parseTopPat(true);
+		if(eat(TokenKind::Colon))
+		{
 		}
 		return nullptr;
 	}
@@ -56,6 +65,6 @@ namespace corrosion
 		}
 
 
-
+		return nullptr;
 	}
 }
