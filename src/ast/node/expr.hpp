@@ -268,6 +268,13 @@ namespace corrosion
 		Expr(Span&& span, KindUnion&& kind, NodeId id = DUMMY_NODE_ID) : span(span), kind(kind), id(id)
 		{
 		}
+		/// Does this expression require a semicolon to be treated
+		/// as a statement? The negation of this: 'can this expression
+		/// be used as a statement without a semicolon' -- is used
+		/// as an early-bail-out in the parser so that, for instance,
+		///     if true {...} else {...}
+		///      |x| 5
+		/// isn't parsed as (if true {...} else {...} | x) | 5
 		bool requiresSemiToBeStmt()
 		{
 			return std::visit([](auto&& arg) -> bool

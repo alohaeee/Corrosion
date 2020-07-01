@@ -4,6 +4,11 @@
 
 namespace corrosion
 {
+	/// Checks if this expression is a successfully parsed statement.
+	bool exprIsComplete(Pointer<Expr> e)
+	{
+		return !e->requiresSemiToBeStmt();
+	}
 
 //	Pointer<Expr> Parser::parseBlock()
 //	{
@@ -382,8 +387,24 @@ namespace corrosion
 				session.criticalSpan(prevToken.span, "Method call are not implemented!");
 				continue;
 			}
-			if(Expr::requiresSemiToBeStmt())
+			if(exprIsComplete(e))
+			{
+				return e;
+			}
+			if(token.kind == TokenKind::OpenDelim)
+			{
+				auto data = token.getData<data::Delim>();
+				if(data.kind == data::Delim::Bracket)
+				{
+					//index
+				}
+				else if(data.kind == data::Delim::Paren)
+				{
+					//fn call
+				}
+			}
 		}
 	}
+
 
 }
