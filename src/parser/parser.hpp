@@ -19,12 +19,14 @@ namespace corrosion
 		TreeCursor cursor;
 		bool closeDelim;
 
-		TokenCursorFrame(data::Delim delim, DelimSpan&& span, TreeCursor stream) : openDelim{ delim.isEmpty()},
+		TokenCursorFrame(data::Delim delim, DelimSpan&& span, TreeCursor&& stream) : openDelim{ delim.isEmpty()},
 		closeDelim{delim.isEmpty()}, delim{delim}, span{span}, cursor{stream}
 		{}
 	};
 	struct TokenCursor
 	{
+		TokenCursor(TokenCursorFrame&& frame) : frame{frame}
+		{}
 		Token next()
 		{
 			while(true)
@@ -67,34 +69,27 @@ namespace corrosion
 				}
 			}
 		}
-		std::vector<TokenCursorFrame> stack;
 		TokenCursorFrame frame;
+		std::vector<TokenCursorFrame> stack{};
 	};
 	class Parser
 	{
 	 private:
-//		inline std::optional<ast::TokenKind> look(std::size_t n=0) noexcept
-//		{
-//			return m_tokenStream.lookahead(n);
-//		}
-//		inline std::optional<ast::Token> token(std::size_t n=0) noexcept
-//		{
-//			return m_tokenStream.token();
-//		}
-//		inline std::optional<ast::Token> shift() noexcept
-//		{
-//			return m_tokenStream.shift();
-//		}
 		Token nextToken()
 		{
 			return tokenCursor.next();
 		}
 	 public:
+		Parser(std::shared_ptr<ParseSession>& sess,TokenStream&& stream) : session(sess),
+			tokenCursor(TokenCursorFrame{data::Delim{data::Delim::NoDelim},DelimSpan::Dummy(),std::move(stream)})
+		{
+			shift();
+		}
 		void shiftWith(Token&& nextTok)
 		{
 			if(this->prevToken.kind == TokenKind::Eof)
 			{
-				this->session.criticalSpan(nextTok.span,"attempted to bump the parser past EOF (may be stuck in a loop)");
+				this->session->criticalSpan(nextTok.span,"attempted to bump the parser past EOF (may be stuck in a loop)");
 			}
 			this->prevToken = std::move(this->token);
 			this->token = nextTok;
@@ -208,7 +203,7 @@ namespace corrosion
 				this->shift();
 				return ident;
 			}
-			session.criticalSpan(token.span,"Trying to eat ident, but find: ");
+			session->criticalSpan(token.span,"Trying to eat ident, but find: ");
 		}
 
 		void expect(TokenKind kind, TokenData&& data = data::Empty{})
@@ -219,7 +214,7 @@ namespace corrosion
 				{
 					this->shift();
 				}
-				session.criticalSpan(token.span,
+				session->criticalSpan(token.span,
 					fmt::format("Expected token: {} , but found: ",Token{kind,{},data}.printable()));
 			}
 			else
@@ -232,7 +227,7 @@ namespace corrosion
 				msg.pop_back();
 				msg.pop_back();
 				msg.pop_back();
-				session.criticalSpan(token.span,fmt::format("Expected: {}, \n but found:",msg));
+				session->criticalSpan(token.span,fmt::format("Expected: {}, \n but found:",msg));
 			}
 		}
 
@@ -257,6 +252,8 @@ namespace corrosion
 		Pointer<Expr> parseWhileExpr();
 
 		Pointer<Expr> parseForExpr();
+		Pointer<Expr> parseFnCallExpr(Pointer<Expr> e, Span lo);
+		Pointer<Expr> parseIndexExpr(Pointer<Expr> e, Span lo);
 		AnonConst parseAnonConstExpr();
 
 		Pointer<Block> parseBlockCommon();
@@ -290,17 +287,12 @@ namespace corrosion
 
 		std::optional<Pointer<Expr>> checkNoChainedComparison(Pointer<Expr> innerOp,Spanned<AssocOp> outerOp);
 
-
-		TokenStreamV m_tokenStream{};
-		ParseSession session;
-		TokenStream tokens;
-
-
+		std::shared_ptr<ParseSession> session;
 		/// The current token.
-		Token token;
+		Token token{};
 		/// The previous token.
-		Token prevToken;
-		std::vector<std::pair<TokenKind,TokenData>> expectedTokens;
+		Token prevToken{};
+		std::vector<std::pair<TokenKind,TokenData>> expectedTokens{};
 		TokenCursor tokenCursor;
 
 	 	//Item root;

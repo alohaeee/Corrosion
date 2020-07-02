@@ -77,7 +77,7 @@ namespace corrosion
 		/// symbols and runs additional validation.
 		ast::Token lexerTokenCook(const lexer::Token& token)
 		{
-			ast::TokenData data;
+			ast::TokenData data=ast::data::Empty{};
 			ast::TokenKind kind;
 			switch (token.kind)
 			{

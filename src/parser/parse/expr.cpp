@@ -186,7 +186,7 @@ namespace corrosion
 				case AssocOp::Colon:
 				case AssocOp::DotDot:
 				case AssocOp::DotDotEq:
-					session.criticalSpan(span,"COMPILER BUG: AssocOp should have been handled by special case");
+					session->criticalSpan(span,"COMPILER BUG: AssocOp should have been handled by special case");
 					break;
 				}
 			}
@@ -199,7 +199,7 @@ namespace corrosion
 	}
 	Pointer<Expr> Parser::parsePrefixRangeExpr()
 	{
-		session.criticalSpan(token.span, "Range Expr are not implemented");
+		session->criticalSpan(token.span, "Range Expr are not implemented");
 		return nullptr;
 	}
 	Pointer<Expr> Parser::parsePrefixExpr()
@@ -219,21 +219,20 @@ namespace corrosion
 			case data::BinOp::Star:
 				return this->parseUnaryExpr(lo,UnOp::Deref); // `*expr`
 			case data::BinOp::And:
-				session.errorSpan(lo,"TODO: can't parse borrow expr");
+				session->errorSpan(lo,"TODO: can't parse borrow expr");
 				//return this->parseBorrowExpr()
 				return nullptr;
 			}
 		}
 		case TokenKind::AndAnd:
-			session.errorSpan(lo,"TODO: can't parse borrow expr");
+			session->errorSpan(lo,"TODO: can't parse borrow expr");
 			//return this->parseBorrowExpr()
 			return nullptr;
 		default:
 			return this->parseDotOrCallExpr();
 		}
 	}
-	/// At the bottom (top?) of the precedence hierarchy,
-	/// Parses things like parenthesized exprs, macros, `return`, etc.
+
 	Pointer<Expr> Parser::parseDotOrCallExpr()
 	{
 		auto base = this->parseBottomExpr();
@@ -250,14 +249,16 @@ namespace corrosion
 		auto&& [ex,span] = parsePrefixExprCommon(lo);
 		return MakePointer<Expr>(span,ExprKind::Unary{op,ex});
 	}
+	/// At the bottom (top?) of the precedence hierarchy,
+	/// Parses things like parenthesized exprs, macros, `return`, etc.
 	Pointer<Expr> Parser::parseBottomExpr()
 	{
 		auto lo = token.span;
-		if(token.kind == TokenKind::Literal)
-		{
-			//this->parseLitExpr();
-		}
-		else if(check(TokenKind::OpenDelim,data::Delim{data::Delim::Paren}))
+//		if(token.kind == TokenKind::Literal)
+//		{
+//			//this->parseLitExpr();
+//		}
+		if(check(TokenKind::OpenDelim,data::Delim{data::Delim::Paren}))
 		{
 			//this->parseTupleParensExpr();
 		}
@@ -331,6 +332,7 @@ namespace corrosion
 
 			return parseLitExpr();
 		}
+		return nullptr;
 
 	}
 	Pointer<Expr> Parser::parseLitExpr()
@@ -379,12 +381,12 @@ namespace corrosion
 		{
 			if(eat(TokenKind::Question))
 			{
-				session.criticalSpan(prevToken.span, "Question exprs are not implemented!");
+				session->criticalSpan(prevToken.span, "Question exprs are not implemented!");
 				continue;
 			}
 			if(eat(TokenKind::Dot))
 			{
-				session.criticalSpan(prevToken.span, "Method call are not implemented!");
+				session->criticalSpan(prevToken.span, "Method call are not implemented!");
 				continue;
 			}
 			if(exprIsComplete(e))
@@ -396,15 +398,43 @@ namespace corrosion
 				auto data = token.getData<data::Delim>();
 				if(data.kind == data::Delim::Bracket)
 				{
-					//index
+					e = parseIndexExpr(e,lo);
 				}
 				else if(data.kind == data::Delim::Paren)
 				{
-					//fn call
+					e = parseFnCallExpr(e,lo);
 				}
 			}
 		}
 	}
+	Pointer<Expr> Parser::parseFnCallExpr(Pointer<Expr> e, Span lo)
+	{
+		assert(eat(TokenKind::OpenDelim,data::Delim{data::Delim::Paren}));
+		std::vector<Pointer<Expr>> exprs;
+		while(true)
+		{
+			auto expr = parseExpr();
+			exprs.push_back(expr);
+			if(eat(TokenKind::CloseDelim,data::Delim{data::Delim::Paren}))
+			{
+				break;
+			}
+			if(eat(TokenKind::Comma))
+			{
+				continue;
+			}
+			session->errorSpan(lo.to(expr->span), "Function call must have close paren ')'");
+			break;
+		}
+		return MakePointer<Expr>(lo.to(prevToken.span),ExprKind::FunctionCall{e,std::move(exprs)});
 
+	}
+	Pointer<Expr> Parser::parseIndexExpr(Pointer<Expr> e, Span lo)
+	{
+		assert(eat(TokenKind::OpenDelim,data::Delim{data::Delim::Bracket}));
+		auto index = parseExpr();
+		expect(TokenKind::CloseDelim,data::Delim{data::Delim::Bracket});
+		return MakePointer<Expr>(lo.to(index->span),ExprKind::Index{e,index});
+	}
 
 }

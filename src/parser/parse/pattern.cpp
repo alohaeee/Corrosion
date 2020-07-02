@@ -13,6 +13,12 @@ namespace corrosion
 	}
 	Pointer<Pat> Parser::parsePathWithOr(bool gateOr)
 	{
+		auto first_pat = parsePat();
+		if(!check(TokenKind::BinOp,data::BinOp{data::BinOp::Or}) || token.kind != TokenKind::OrOr)
+		{
+			return first_pat;
+		}
+		session->criticalSpan(first_pat->span.to(token.span), "Or pattern is not implemented");
 		return nullptr;
 	}
 	Pointer<Pat> Parser::parsePatWithRangePat(bool allowRangePat)
@@ -45,7 +51,7 @@ namespace corrosion
 			}
 			else
 			{
-				session.errorSpan(lo.to(prevToken.span), "Expected pattern but found:");
+				session->errorSpan(lo.to(prevToken.span), "Expected pattern but found:");
 				return nullptr;
 			}
 
@@ -89,7 +95,7 @@ namespace corrosion
 		auto pat = parsePatWithRangePat(false);
 		if(!eat(TokenKind::CloseDelim,data::Delim{data::Delim::Paren}))
 		{
-			session.errorSpan(pat->span, "paren pattern must have ')'");
+			session->errorSpan(pat->span, "paren pattern must have ')'");
 		}
 		return PatKind::Paren{ pat };
 	}

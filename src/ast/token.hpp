@@ -759,9 +759,9 @@ namespace corrosion::ast
 			case TokenKind::Comma:
 				return ",";
 			case TokenKind::Semi:
-				return ":";
-			case TokenKind::Colon:
 				return ";";
+			case TokenKind::Colon:
+				return ":";
 			case TokenKind::ModSep:
 				return "::";
 			case TokenKind::RArrow:

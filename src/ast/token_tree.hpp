@@ -31,6 +31,10 @@ namespace corrosion
 	{
 		DelimSpan(Span lhs,Span rhs) : open{lhs}, close{rhs}
 		{}
+		static DelimSpan Dummy()
+		{
+			return DelimSpan{{},{}};
+		}
 		inline Span entire() noexcept
 		{
 			return Span::sum(open, close);

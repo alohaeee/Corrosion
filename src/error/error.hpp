@@ -8,16 +8,16 @@
 
 namespace corrosion
 {
-
+	class CriticalException: public std::exception
+	{
+	 public:
+		CriticalException(std::string_view msg) : std::exception(msg.data())
+		{}
+	};
 	class ErrorHandler
 	{
 	 public:
-		class CriticalException: public std::exception
-		{
-		 public:
-			CriticalException(std::string_view msg) : std::exception(msg.data())
-			{}
-		};
+
 		ErrorHandler& info(std::string_view msg) noexcept
 		{
 			CR_LOG_INFO(msg);

@@ -24,7 +24,7 @@ namespace corrosion
 			{
 				if(token.isQPathStart())
 				{
-					session.criticalSpan(token.span, "Generic in path start are not implimented");
+					session->criticalSpan(token.span, "Generic in path start are not implimented");
 				}
 				return;
 			}

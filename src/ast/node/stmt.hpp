@@ -47,9 +47,12 @@ namespace corrosion
 	struct Stmt
 	{
 		using KindUnion = std::variant<StmtKind::Local,StmtKind::Item,StmtKind::Expr,StmtKind::Semi,StmtKind::Empty>;
-		NodeId id;
-		StmtKind kind;
 		Span span;
+		KindUnion kind;
+		NodeId id;
+
+		Stmt(const Span& span, KindUnion&& kind, NodeId id = DUMMY_NODE_ID) : span(span), kind(kind), id(id)
+		{}
 	};
 }
 

@@ -142,12 +142,13 @@ namespace corrosion
 #ifdef CR_ENABLE_LOG_STRREADER
 			CR_LOG_STRREADER("[STRING READER] Token Tree in file: {}",reader.parseSession->file().path().string());
 			printAstTokenTreeReq(buf,0);
+			Log::getStringReaderLogger()->flush();
 #endif
 		}
 		void printAstTokenTreeReq(const TokenStream& buf,std::size_t level)
 		{
-			level++;
 #ifdef CR_ENABLE_LOG_STRREADER
+			level++;
 			for (auto &&[tt, joint]: buf.treeAndJoint)
 			{
 				if (tt.isToken())
