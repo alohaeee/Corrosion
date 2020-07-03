@@ -19,6 +19,29 @@ namespace corrosion
 		{
 
 		}
+		void printer(std::size_t level)
+		{
+			astLogPrint("let <pat>:<ty> = <expr>;",level);
+			astLogPrint("pat:",level);
+			if(pat)
+			{
+				pat->printer(level+1);
+			}
+			else
+			{
+				astLogPrint("BUG: There must be pattern",level+1);
+			}
+			if(type)
+			{
+				astLogPrint("type:",level);
+				type->printer(level+1);
+			}
+			if(init)
+			{
+				astLogPrint("init:",level);
+				type->printer(level+1);
+			}
+		}
 	};
 
 	struct StmtKind
@@ -53,6 +76,22 @@ namespace corrosion
 
 		Stmt(const Span& span, KindUnion&& kind, NodeId id = DUMMY_NODE_ID) : span(span), kind(kind), id(id)
 		{}
+
+		void printer(std::size_t level)
+		{
+			auto label = nodeFormatter("Stmt",id,span);
+			astLogPrint(label,level);
+			std::visit([level](auto&& arg)
+			{
+				using T = std::decay_t<decltype(arg)>;
+				if constexpr(std::is_same_v<T, StmtKind::Local>)
+				{
+					astLogPrint("kind: Local", level+1);
+					astLogPrint("internal:", level+1);
+					arg.printer(level+2);
+				}
+			},kind);
+		}
 	};
 }
 

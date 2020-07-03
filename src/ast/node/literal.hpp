@@ -15,7 +15,8 @@ namespace corrosion
 			NotImplemented
 		};
 		LiteralError(Kind errorKind) : m_errorKind{ errorKind }
-		{}
+		{
+		}
 		std::string toString() const noexcept
 		{
 			switch (m_errorKind)
@@ -172,7 +173,7 @@ namespace corrosion
 	};
 	struct LiteralKind
 	{
-		struct Str : Symbol
+		struct Str
 		{
 			Symbol sym;
 		};
@@ -196,6 +197,7 @@ namespace corrosion
 		struct Boolean
 		{
 			bool val;
+
 		};
 		struct Error
 		{
@@ -240,7 +242,7 @@ namespace corrosion
 			assert(token.kind == ast::TokenKind::Literal);
 			auto data = token.getData<ast::data::Literal>();
 			auto kind = fromLitToken(data);
-			return Literal{data,token.span,kind};
+			return Literal{ data, token.span, kind };
 		}
 		static Literal::KindUnion fromLitToken(const ast::data::Literal& lit)
 		{
@@ -249,16 +251,16 @@ namespace corrosion
 			case ast::data::Literal::Integer:
 				return integerLiteral(lit.symbol, lit.suffix);
 			case ast::data::Literal::Float:
-				return filterFloatLiteral(lit.symbol,lit.suffix);
+				return filterFloatLiteral(lit.symbol, lit.suffix);
 			case ast::data::Literal::Char:
-				throw LiteralError{LiteralError::NotImplemented};
+				throw LiteralError{ LiteralError::NotImplemented };
 			case ast::data::Literal::Str:
-				throw LiteralError{LiteralError::NotImplemented};
+				throw LiteralError{ LiteralError::NotImplemented };
 			case ast::data::Literal::Bool:
 				assert(lit.symbol.isBoolLiteral());
-				return LiteralKind::Boolean{lit.symbol == kw::True};
+				return LiteralKind::Boolean{ lit.symbol == kw::True };
 			default:
-				return LiteralKind::Error{lit.symbol};
+				return LiteralKind::Error{ lit.symbol };
 			}
 		}
 	 private:
@@ -270,9 +272,9 @@ namespace corrosion
 				switch (suffix->data())
 				{
 				case sym::F32:
-					kind = FloatType::Suffixed{FloatType::Suffixed::F32};
+					kind = FloatType::Suffixed{ FloatType::Suffixed::F32 };
 				case sym::F64:
-					kind = FloatType::Suffixed{FloatType::Suffixed::F64};
+					kind = FloatType::Suffixed{ FloatType::Suffixed::F64 };
 				default:
 					throw LiteralError(LiteralError::InvalidSuffix);
 				}
@@ -288,15 +290,15 @@ namespace corrosion
 			LiteralKind::Int::KindUnion type;
 			uint32_t base = 10;
 			auto s = sym.toString();
-			if(s.starts_with("0b"))
+			if (s.starts_with("0b"))
 			{
 				base = 2;
 			}
-			else if(s.starts_with("0o"))
+			else if (s.starts_with("0o"))
 			{
 				base = 8;
 			}
-			else if(s.starts_with("0x"))
+			else if (s.starts_with("0x"))
 			{
 				base = 16;
 			}
@@ -339,9 +341,9 @@ namespace corrosion
 				case sym::U128:
 					throw LiteralError{ LiteralError::NotImplemented };
 				default:
-					if(s.starts_with('f'))
+					if (s.starts_with('f'))
 					{
-						return filterFloatLiteral(sym,suffix);
+						return filterFloatLiteral(sym, suffix);
 					}
 					throw LiteralError{ LiteralError::InvalidSuffix };
 				}
@@ -350,7 +352,73 @@ namespace corrosion
 			{
 				type = IntType::Unsuffixed{};
 			}
-			return LiteralKind::Int{std::stoul(s.data(),nullptr,base),type};
+			return LiteralKind::Int{ std::stoul(s.data(), nullptr, base), type };
+		}
+	 public:
+		void printer(std::size_t level)
+		{
+			std::visit([this, level](auto&& arg)
+			{
+			  using T = std::decay_t<decltype(arg)>;
+			  if constexpr (std::is_same_v<T, LiteralKind::Boolean>)
+			  {
+				  astLogPrint("type: Boolean", level);
+				  astLogPrint(fmt::format("val: {}", arg.val),level);
+			  }
+			  else if constexpr (std::is_same_v<T, LiteralKind::Char>)
+			  {
+				  astLogPrint("type: Char", level);
+				  astLogPrint(fmt::format("val: {}", arg.val),level);
+			  }
+			  else if constexpr (std::is_same_v<T, LiteralKind::Int>)
+			  {
+				  astLogPrint("type: Integer", level);
+				  if(std::holds_alternative<IntType::Signed>(arg.type))
+				  {
+				  	auto suf = std::get<IntType::Signed>(arg.type).toString();
+				  	astLogPrint(fmt::format("internal: Signed => {}", suf),level+1);
+				  }
+				  else if(std::holds_alternative<IntType::Unsigned>(arg.type))
+				  {
+					  auto suf = std::get<IntType::Unsigned>(arg.type).toString();
+					  astLogPrint(fmt::format("internal: Unsigned => {}", suf),level+1);
+				  }
+				  else
+				  {
+					  astLogPrint("internal: Unsuffixed",level+1);
+				  }
+				  astLogPrint(fmt::format("val: {}", arg.val),level);
+
+			  }
+			  else if constexpr (std::is_same_v<T, LiteralKind::Float>)
+			  {
+				  astLogPrint("type: Float", level);
+				  if(std::holds_alternative<FloatType::Suffixed>(arg.type))
+				  {
+					  auto suf = std::get<FloatType::Suffixed>(arg.type).toString();
+					  astLogPrint(fmt::format("internal: Suffixed => {}", suf),level+1);
+				  }
+				  else
+				  {
+					  astLogPrint("internal: Unsuffixed",level+1);
+				  }
+				  astLogPrint(fmt::format("val: {}", arg.val),level);
+
+			  }
+			  else if constexpr(std::is_same_v<T, LiteralKind::Str>)
+			  {
+				  astLogPrint("type: String", level);
+				  astLogPrint(fmt::format("sym: {}", arg.sym.toString()),level);
+			  }
+			  else if constexpr(std::is_same_v<T, LiteralKind::Error>)
+			  {
+			  	astLogPrint("type: ERROR", level);
+			  }
+			  else
+			  {
+			  	astLogPrint("BUG: Try to print literal as AST Node but fell through all visit cases", level);
+			  }
+			}, kind);
 		}
 	};
 }

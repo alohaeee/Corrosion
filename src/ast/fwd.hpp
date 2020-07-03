@@ -24,6 +24,17 @@ namespace corrosion
 	{
 		DUMMY_NODE_ID = std::numeric_limits<NodeId>::max()
 	};
+	inline std::string nodeFormatter(std::string_view label,NodeId id,Span span)
+	{
+		return fmt::format("Node {} [id: {};span: ({},{})]", label,(id==DUMMY_NODE_ID?"DUMMY": std::to_string(id)), span.lo(),span.hi());
+	}
+	inline void astLogPrint(std::string_view info,std::size_t level)
+	{
+#ifdef CR_ENABLE_LOG_AST
+		CR_LOG_AST("{0:>{1}}{2}","",level*3,info);
+#endif
+	}
+
 
 	// >------Item ------<
 	/// A "Label" is an identifier of some point in sources,

@@ -14,13 +14,5 @@
 #include "assoc_prec.hpp"
 
 
-
-namespace corrosion
-{
-
-
-
-}
-
 #endif //CORROSION_SRC_PARSER_AST_AST_HPP_
 

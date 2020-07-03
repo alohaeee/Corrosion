@@ -12,6 +12,7 @@
 #define CR_ENABLE_DEBUG_LOG
 #define CR_ENABLE_LOG_TOKENIZER
 #define CR_ENABLE_LOG_STRREADER
+#define CR_ENABLE_LOG_AST
 #endif
 
 namespace corrosion
@@ -45,6 +46,13 @@ namespace corrosion
 			s_stringReaderLogger->set_level(spdlog::level::trace);
 			s_stringReaderLogger->set_pattern("%v%$");
 #endif
+#ifdef CR_ENABLE_LOG_AST
+			FileLoader::create(std::filesystem::current_path()/"logs"/"ast.txt");
+			s_astLogger = spdlog::basic_logger_mt("AST",
+				(std::filesystem::current_path()/"logs"/"ast.txt").string());
+			s_astLogger->set_level(spdlog::level::trace);
+			s_astLogger->set_pattern("%v%$");
+#endif
 
 		}
 		inline static std::shared_ptr<spdlog::logger>& getParseLogger()
@@ -63,11 +71,16 @@ namespace corrosion
 		{
 			return s_stringReaderLogger;
 		}
+		inline static std::shared_ptr<spdlog::logger>& getAstLogger()
+		{
+			return s_astLogger;
+		}
 	 protected:
 		inline static std::shared_ptr<spdlog::logger> s_parseLogger;
 		inline static std::shared_ptr<spdlog::logger> s_debugLogger;
 		inline static std::shared_ptr<spdlog::logger> s_tokenizerLogger;
 		inline static std::shared_ptr<spdlog::logger> s_stringReaderLogger;
+		inline static std::shared_ptr<spdlog::logger> s_astLogger;
 	};
 #define CR_LOG_TRACE(...) ::corrosion::Log::getParseLogger()->trace(__VA_ARGS__)
 #define CR_LOG_INFO(...) ::corrosion::Log::getParseLogger()->info(__VA_ARGS__)
@@ -102,6 +115,12 @@ namespace corrosion
 #define CR_LOG_STRREADER(...) ::corrosion::Log::getStringReaderLogger()->trace(__VA_ARGS__)
 #else
 #define CR_LOG_STRREADER(...)
+#endif
+
+#ifdef CR_ENABLE_LOG_AST
+#define CR_LOG_AST(...) ::corrosion::Log::getAstLogger()->trace(__VA_ARGS__)
+#else
+#define CR_LOG_AST(...)
 #endif
 }
 

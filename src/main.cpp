@@ -12,7 +12,7 @@ int main()
 	Interner::fresh();
 
 	auto parseSession = std::make_shared<ParseSession>();
-	parseSession->appendFile(SourceFile("test_file.txt", "let a = 3;"));
+	parseSession->appendFile(SourceFile("test_file.txt", "let a = 3; if s { let b = a+3; } "));
 
 	try
 	{
@@ -20,8 +20,11 @@ int main()
 		TokenTreeReader treeReader{ std::move(reader) };
 		auto stream = treeReader.parseAllTokenTrees();
 
-		Parser parser{ parseSession, std::move(stream) };
-		parser.parseStmtWithoutRecovery();
+		auto bin = MakePointer<Expr>(Span{2,5}, ExprKind::Binary{});
+		MakePointer<Expr>(Span{0,16}, ExprKind::Literal{L})->printer(0);
+
+//		Parser parser{ parseSession, std::move(stream) };
+//		parser.parseStmtWithoutRecovery();
 	}
 	catch(CriticalException& e)
 	{

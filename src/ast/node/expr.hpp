@@ -114,10 +114,11 @@ namespace corrosion
 		{
 			Pointer<Expr> condition;
 			Pointer<Block> block;
-			std::optional<Pointer<Expr>> else_expr;
+			Pointer<Expr> elseExpr;
 		};
 
-		/// A while loop, with an optional label.
+		/// A while loop, wi
+		/// th an optional label.
 		///
 		/// `'label: while expr { block }`
 		struct While
@@ -280,26 +281,92 @@ namespace corrosion
 			return std::visit([](auto&& arg) -> bool
 			{
 			  using T = std::decay_t<decltype(arg)>;
-			  if constexpr(std::is_same_v<T,ExprKind::If>)
+			  if constexpr(std::is_same_v<T, ExprKind::If>)
 			  {
 			  }
-			  else if constexpr(std::is_same_v<T,ExprKind::Match>)
+			  else if constexpr(std::is_same_v<T, ExprKind::Match>)
 			  {
 			  }
-			  else if constexpr (std::is_same_v<T,ExprKind::While>)
+			  else if constexpr (std::is_same_v<T, ExprKind::While>)
 			  {
 			  }
-			  else if constexpr (std::is_same_v<T,ExprKind::Loop>)
+			  else if constexpr (std::is_same_v<T, ExprKind::Loop>)
 			  {
 			  }
-			  else if constexpr (std::is_same_v<T,ExprKind::ForLoop>)
+			  else if constexpr (std::is_same_v<T, ExprKind::ForLoop>)
 			  {
 			  }
 			  else
 			  {
-			  	return false;
+				  return false;
 			  }
 			  return true;
+
+			}, kind);
+		}
+		void printer(std::size_t level)
+		{
+			auto label = nodeFormatter("Expr", id, span);
+			astLogPrint(label,level);
+			std::visit([this,level](auto&& arg)
+			{
+			  using T = std::decay_t<decltype(arg)>;
+
+			  if constexpr(std::is_same_v<T, ExprKind::If>)
+			  {
+			  	astLogPrint("type: If",level+1);
+				astLogPrint("cond:", level+1);
+				if(arg.condition)
+				{
+					arg.condition->printer(level+2);
+				}
+				else
+				{
+					astLogPrint("BUG: There must be condition expr", level+2);
+				}
+				astLogPrint("block:", level+1);
+				if(arg.block)
+				{
+					//	arg.block->printer(level+2);
+				}
+				else
+				{
+					astLogPrint("BUG: There must be block expr", level+2);
+				}
+				if(arg.elseExpr)
+				{
+					astLogPrint("else:", level+1);
+					arg.elseExpr->printer(level+2);
+				}
+
+			  }
+			  else if constexpr(std::is_same_v<T, ExprKind::Match>)
+			  {
+			  }
+			  else if constexpr (std::is_same_v<T, ExprKind::While>)
+			  {
+			  }
+			  else if constexpr (std::is_same_v<T, ExprKind::Loop>)
+			  {
+			  }
+			  else if constexpr (std::is_same_v<T, ExprKind::ForLoop>)
+			  {
+			  }
+			  else if constexpr (std::is_same_v<T, ExprKind::Literal>)
+			  {
+				  astLogPrint("type: Literal",level+1);
+				  astLogPrint("internal:", level+1);
+				  arg.printer(level+2);
+			  }
+//			  if(type.empty())
+//			  {
+//			  	type = "BUG: some expression type was't visit";
+//			  }
+//			  else
+//			  {
+//			  	type = fmt::format("type: {}", type);
+//			  }
+//			  astLogPrint(type,level+1);
 
 			}, kind);
 		}

@@ -78,6 +78,15 @@ namespace corrosion
 
 		Ty(const Span& span, KindUnion&& kind, NodeId id = DUMMY_NODE_ID) : span{span},kind{kind},id{id}
 		{}
+
+		void printer(std::size_t level)
+		{
+			std::visit([level](auto&& arg)
+			{
+
+			},kind);
+		}
+
 	};
 }
 

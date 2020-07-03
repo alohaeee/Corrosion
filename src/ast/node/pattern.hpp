@@ -29,7 +29,7 @@ namespace corrosion
 		{
 			ByValue,
 			ByRef
-		}kind;
+		} kind;
 		Mutability mut;
 	};
 	struct PatKind
@@ -46,13 +46,13 @@ namespace corrosion
 		{
 			BindingMode bindingMode;
 			corrosion::Ident ident;
-			std::optional<Pointer<Pat>> pat;
+			Pointer<Pat> subpat;
 		};
 		/// An or-pattern `A | B | C`.
 		/// Invariant: `pats.len() >= 2`.
 		struct Or
 		{
-			std::vector<Pointer<Pat>> pats;
+			std::vector<Pointer < Pat>> pats;
 		};
 		/// A reference pattern (e.g., `&mut (a, b)`).
 		struct Ref
@@ -79,15 +79,56 @@ namespace corrosion
 	{
 		Span span;
 		using KindUnion = std::variant<PatKind::Wild, PatKind::Ident, PatKind::Or, PatKind::Ref, PatKind::Path,
-			PatKind::Paren,PatKind::Literal>;
+									   PatKind::Paren, PatKind::Literal>;
 		KindUnion kind;
 		NodeId id;
 
-		Pat(Span span, KindUnion&& kind, NodeId id = DUMMY_NODE_ID) : span{span}, kind{kind}, id{id}
-		{}
+		Pat(Span span, KindUnion&& kind, NodeId id = DUMMY_NODE_ID) : span{ span }, kind{ kind }, id{ id }
+		{
+		}
+
+		void printer(std::size_t level)
+		{
+			auto label = nodeFormatter("Pattern", id, span);
+			astLogPrint(label, level);
+			std::visit([level](auto&& arg)
+			{
+			  using T = std::decay_t<decltype(arg)>;
+			  if constexpr(std::is_same_v<T, PatKind::Wild>)
+			  {
+				  astLogPrint("type: Wild(_)", level + 1);
+			  }
+			  else if constexpr(std::is_same_v<T, PatKind::Ident>)
+			  {
+				  astLogPrint("type: Ident", level + 1);
+				  if (arg.bindingMode.kind == BindingMode::ByRef)
+				  {
+					  astLogPrint("binding: By Ref", level + 1);
+				  }
+				  if (arg.bindingMode.mut == Mutability::Mut)
+				  {
+					  astLogPrint("mutability: mut", level + 1);
+				  }
+				  else
+				  {
+					  astLogPrint("mutability: not", level + 1);
+				  }
+
+				  astLogPrint(fmt::format("name: {}", arg.ident.name().toString()), level + 1);
+				  if (arg.subpat)
+				  {
+					  astLogPrint("subpat:", level + 1);
+					  arg.subpat->printer(level + 2);
+				  }
+
+			  }
+			  else
+			  {
+				  astLogPrint("BUG: Fell through of PatKind", level + 1);
+			  }
+			}, kind);
+		}
 	};
-
-
 
 }
 
