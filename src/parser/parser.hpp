@@ -213,6 +213,7 @@ namespace corrosion
 				if(token.kind == kind && data == token.data)
 				{
 					this->shift();
+					return;
 				}
 				session->criticalSpan(token.span,
 					fmt::format("Expected token: {} , but found: ",Token{kind,{},data}.printable()));
@@ -227,7 +228,7 @@ namespace corrosion
 				msg.pop_back();
 				msg.pop_back();
 				msg.pop_back();
-				session->criticalSpan(token.span,fmt::format("Expected: {}, \n but found:",msg));
+				session->criticalSpan(token.span,fmt::format("Expected: {}, but found:",msg));
 			}
 		}
 
@@ -239,10 +240,12 @@ namespace corrosion
 //		Pointer<Expr> parseWhileExpr();
 		Pointer<Expr> parseExpr();
 		Pointer<Expr> parseAssocExprWith(std::size_t minPrec, Pointer<Expr> lhs);
+		bool shouldContinueAsAssocExpr(Pointer<Expr>& e);
+		std::optional<AssocOp> checkAssocOp();
 		Pointer<Expr> parsePrefixRangeExpr();
 		Pointer<Expr> parsePrefixExpr();
 		Pointer<Expr> parseDotOrCallExpr();
-		Pointer<Expr> parseDotOrCallExprWith(Pointer<Expr> e, Span lo);
+		Pointer<Expr> parseDotOrCallExprWith(Pointer<Expr>& e, Span lo);
 		Pointer<Expr> parseBottomExpr();
 		Spanned<Pointer<Expr>> parsePrefixExprCommon(Span lo);
 		Pointer<Expr> parseUnaryExpr(Span lo, UnOp op);
@@ -252,8 +255,8 @@ namespace corrosion
 		Pointer<Expr> parseWhileExpr();
 
 		Pointer<Expr> parseForExpr();
-		Pointer<Expr> parseFnCallExpr(Pointer<Expr> e, Span lo);
-		Pointer<Expr> parseIndexExpr(Pointer<Expr> e, Span lo);
+		Pointer<Expr> parseFnCallExpr(Pointer<Expr> &e, Span lo);
+		Pointer<Expr> parseIndexExpr(Pointer<Expr> &e, Span lo);
 		AnonConst parseAnonConstExpr();
 
 		Pointer<Block> parseBlockCommon();

@@ -39,7 +39,7 @@ namespace corrosion
 			if (init)
 			{
 				astLogPrint("init:", level);
-				type->printer(level + 1);
+				init->printer(level + 1);
 			}
 		}
 	};

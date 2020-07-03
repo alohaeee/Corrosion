@@ -113,16 +113,21 @@ namespace corrosion
 	{
 		if (token.isRangeKind())
 		{
-			parsePrefixRangeExpr();
+			lhs = parsePrefixRangeExpr();
 		}
 		else
 		{
-			parsePrefixExpr();
+			lhs = parsePrefixExpr();
+		}
+
+		if(!shouldContinueAsAssocExpr(lhs))
+		{
+			return lhs;
 		}
 
 		std::optional<AssocOp> op;
 		this->expectedTokens.emplace_back(TokenKind::BinOp,data::BinOp{});
-		for (;(op=AssocOp::fromToken(token))&& op;)
+		for (;(op=checkAssocOp())&& op;)
 		{
 			auto cur_op_span = token.span;
 			auto prec = op->precedence();
@@ -196,6 +201,24 @@ namespace corrosion
 			}
 		}
 		return lhs;
+	}
+	std::optional<AssocOp> Parser::checkAssocOp()
+	{
+		auto op = AssocOp::fromToken(token);
+		return op;
+	}
+	bool Parser::shouldContinueAsAssocExpr(Pointer<Expr> &e)
+	{
+		auto complete = exprIsComplete(e);
+		auto op = checkAssocOp();
+		if(complete && !op)
+		{
+			return false;
+		}
+		if(!complete)
+		{
+			return true;
+		}
 	}
 	Pointer<Expr> Parser::parsePrefixRangeExpr()
 	{
@@ -375,7 +398,7 @@ namespace corrosion
 	{
 		return parseAssocExprWith(0,nullptr);
 	}
-	Pointer<Expr> Parser::parseDotOrCallExprWith(Pointer<Expr> e, Span lo)
+	Pointer<Expr> Parser::parseDotOrCallExprWith(Pointer<Expr>& e, Span lo)
 	{
 		while(true)
 		{
@@ -391,6 +414,7 @@ namespace corrosion
 			}
 			if(exprIsComplete(e))
 			{
+				expectedTokens.clear();
 				return e;
 			}
 			if(token.kind == TokenKind::OpenDelim)
@@ -407,7 +431,7 @@ namespace corrosion
 			}
 		}
 	}
-	Pointer<Expr> Parser::parseFnCallExpr(Pointer<Expr> e, Span lo)
+	Pointer<Expr> Parser::parseFnCallExpr(Pointer<Expr>& e, Span lo)
 	{
 		assert(eat(TokenKind::OpenDelim,data::Delim{data::Delim::Paren}));
 		std::vector<Pointer<Expr>> exprs;
@@ -429,7 +453,7 @@ namespace corrosion
 		return MakePointer<Expr>(lo.to(prevToken.span),ExprKind::FunctionCall{e,std::move(exprs)});
 
 	}
-	Pointer<Expr> Parser::parseIndexExpr(Pointer<Expr> e, Span lo)
+	Pointer<Expr> Parser::parseIndexExpr(Pointer<Expr>& e, Span lo)
 	{
 		assert(eat(TokenKind::OpenDelim,data::Delim{data::Delim::Bracket}));
 		auto index = parseExpr();

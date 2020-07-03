@@ -49,7 +49,12 @@ namespace corrosion
 			span_pointer.resize(span.hi()- span.lo());
 			std::fill(span_pointer.begin(),span_pointer.end(),'^');
 			// "-----"
-			std::size_t pre_render = span.lo() - m_file.lines()[lo_line-1];
+			auto delta = 0;
+			if(lo_line != 0)
+			{
+				delta = m_file.lines()[lo_line-1];
+			}
+			std::size_t pre_render = span.lo() - delta;
 
 			source.append( fmt::format("{0:>{1}}", " | ", hi_str_size+1));
 			source.append(fmt::format("{0:->{1}}", span_pointer, pre_render+span_pointer.size()));

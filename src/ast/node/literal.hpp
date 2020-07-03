@@ -363,60 +363,60 @@ namespace corrosion
 			  if constexpr (std::is_same_v<T, LiteralKind::Boolean>)
 			  {
 				  astLogPrint("type: Boolean", level);
-				  astLogPrint(fmt::format("val: {}", arg.val),level);
+				  astLogPrint(fmt::format("val: {}", arg.val), level);
 			  }
 			  else if constexpr (std::is_same_v<T, LiteralKind::Char>)
 			  {
 				  astLogPrint("type: Char", level);
-				  astLogPrint(fmt::format("val: {}", arg.val),level);
+				  astLogPrint(fmt::format("val: {}", arg.val), level);
 			  }
 			  else if constexpr (std::is_same_v<T, LiteralKind::Int>)
 			  {
 				  astLogPrint("type: Integer", level);
-				  if(std::holds_alternative<IntType::Signed>(arg.type))
+				  if (std::holds_alternative<IntType::Signed>(arg.type))
 				  {
-				  	auto suf = std::get<IntType::Signed>(arg.type).toString();
-				  	astLogPrint(fmt::format("internal: Signed => {}", suf),level+1);
+					  auto suf = std::get<IntType::Signed>(arg.type).toString();
+					  astLogPrint(fmt::format("kind: Signed => {}", suf), level);
 				  }
-				  else if(std::holds_alternative<IntType::Unsigned>(arg.type))
+				  else if (std::holds_alternative<IntType::Unsigned>(arg.type))
 				  {
 					  auto suf = std::get<IntType::Unsigned>(arg.type).toString();
-					  astLogPrint(fmt::format("internal: Unsigned => {}", suf),level+1);
+					  astLogPrint(fmt::format("kind: Unsigned => {}", suf), level);
 				  }
 				  else
 				  {
-					  astLogPrint("internal: Unsuffixed",level+1);
+					  astLogPrint("kind: Unsuffixed", level);
 				  }
-				  astLogPrint(fmt::format("val: {}", arg.val),level);
+				  astLogPrint(fmt::format("val: {}", arg.val), level);
 
 			  }
 			  else if constexpr (std::is_same_v<T, LiteralKind::Float>)
 			  {
 				  astLogPrint("type: Float", level);
-				  if(std::holds_alternative<FloatType::Suffixed>(arg.type))
+				  if (std::holds_alternative<FloatType::Suffixed>(arg.type))
 				  {
 					  auto suf = std::get<FloatType::Suffixed>(arg.type).toString();
-					  astLogPrint(fmt::format("internal: Suffixed => {}", suf),level+1);
+					  astLogPrint(fmt::format("kind: Suffixed => {}", suf), level);
 				  }
 				  else
 				  {
-					  astLogPrint("internal: Unsuffixed",level+1);
+					  astLogPrint("kind: Unsuffixed", level);
 				  }
-				  astLogPrint(fmt::format("val: {}", arg.val),level);
+				  astLogPrint(fmt::format("val: {}", arg.val), level);
 
 			  }
 			  else if constexpr(std::is_same_v<T, LiteralKind::Str>)
 			  {
 				  astLogPrint("type: String", level);
-				  astLogPrint(fmt::format("sym: {}", arg.sym.toString()),level);
+				  astLogPrint(fmt::format("sym: {}", arg.sym.toString()), level);
 			  }
 			  else if constexpr(std::is_same_v<T, LiteralKind::Error>)
 			  {
-			  	astLogPrint("type: ERROR", level);
+				  astLogPrint("type: ERROR", level);
 			  }
 			  else
 			  {
-			  	astLogPrint("BUG: Try to print literal as AST Node but fell through all visit cases", level);
+				  astLogPrint("BUG: Try to print literal as AST Node but fell through all visit cases", level);
 			  }
 			}, kind);
 		}
