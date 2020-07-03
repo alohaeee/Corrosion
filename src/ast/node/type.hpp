@@ -71,20 +71,44 @@ namespace corrosion
 	struct Ty
 	{
 		Span span;
-		using KindUnion = std::variant<TyKind::Array,TyKind::Path, TyKind::BareFn, TyKind::Slice>;
+		using KindUnion = std::variant<TyKind::Array, TyKind::Path, TyKind::BareFn, TyKind::Slice>;
 		KindUnion kind;
 
 		NodeId id;
 
-		Ty(const Span& span, KindUnion&& kind, NodeId id = DUMMY_NODE_ID) : span{span},kind{kind},id{id}
-		{}
+		Ty(const Span& span, KindUnion&& kind, NodeId id = DUMMY_NODE_ID) : span{ span }, kind{ kind }, id{ id }
+		{
+		}
 
 		void printer(std::size_t level)
 		{
+			auto label = nodeFormatter("Type", id, span);
+			astLogPrint(label, level);
 			std::visit([level](auto&& arg)
 			{
+			  using T = std::decay_t<decltype(arg)>;
 
-			},kind);
+			  if constexpr(std::is_same_v<T, TyKind::Array>)
+			  {
+				  astLogPrint("kind: Array", level + 1);
+
+			  }
+			  else if constexpr(std::is_same_v<T, TyKind::Path>)
+			  {
+				  astLogPrint("kind: Path", level + 1);
+				  astLogPrint("segments:", level + 1);
+				  for (auto& s: arg.path.segments)
+				  {
+					  astLogPrint(s.ident.name().toString(), level + 2);
+				  }
+
+			  }
+			  else
+			  {
+				  astLogPrint("BUG: Try to print Type as AST Node but fell through all visit cases", level + 1);
+			  }
+
+			}, kind);
 		}
 
 	};

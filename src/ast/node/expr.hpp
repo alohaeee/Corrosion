@@ -358,6 +358,10 @@ namespace corrosion
 				  astLogPrint("internal:", level+1);
 				  arg.printer(level+2);
 			  }
+			  else
+			  {
+				  astLogPrint("BUG: Try to print Expr as AST Node but fell through all visit cases", level+1);
+			  }
 //			  if(type.empty())
 //			  {
 //			  	type = "BUG: some expression type was't visit";

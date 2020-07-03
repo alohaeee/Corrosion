@@ -20,11 +20,11 @@ int main()
 		TokenTreeReader treeReader{ std::move(reader) };
 		auto stream = treeReader.parseAllTokenTrees();
 
-		auto bin = MakePointer<Expr>(Span{2,5}, ExprKind::Binary{});
-		MakePointer<Expr>(Span{0,16}, ExprKind::Literal{L})->printer(0);
+//		auto bin = MakePointer<Expr>(Span{2,5}, ExprKind::Binary{});
+//		MakePointer<Expr>(Span{0,16}, ExprKind::Literal{})->printer(0);
 
-//		Parser parser{ parseSession, std::move(stream) };
-//		parser.parseStmtWithoutRecovery();
+		Parser parser{ parseSession, std::move(stream) };
+		parser.parseStmtWithoutRecovery()->printer(0);
 	}
 	catch(CriticalException& e)
 	{
