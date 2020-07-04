@@ -9,6 +9,25 @@ namespace corrosion
 	{
 		return !e->requiresSemiToBeStmt();
 	}
+	AnonConst Parser::parseAnonConstExpr()
+	{
+		return AnonConst{DUMMY_NODE_ID,parseExpr()};
+	}
+	Pointer<Expr> Parser::parseExpr()
+	{
+		return parseExprRes(Restriction::NO_RESTRICT);
+	}
+	Pointer<Expr> Parser::parseAssocExpr()
+	{
+		return parseAssocExprWith(0,nullptr);
+	}
+	Pointer<Expr> Parser::parseExprRes(Restriction res)
+	{
+		return withRes<Pointer<Expr>>(res,&Parser::parseAssocExpr);
+	}
+
+
+
 
 //	Pointer<Expr> Parser::parseBlock()
 //	{
@@ -202,6 +221,7 @@ namespace corrosion
 		}
 		return lhs;
 	}
+
 	std::optional<AssocOp> Parser::checkAssocOp()
 	{
 		auto op = AssocOp::fromToken(token);
@@ -390,14 +410,7 @@ namespace corrosion
 		}
 		return lit;
 	}
-	AnonConst Parser::parseAnonConstExpr()
-	{
-		return AnonConst{DUMMY_NODE_ID,parseExpr()};
-	}
-	Pointer<Expr> Parser::parseExpr()
-	{
-		return parseAssocExprWith(0,nullptr);
-	}
+
 	Pointer<Expr> Parser::parseDotOrCallExprWith(Pointer<Expr>& e, Span lo)
 	{
 		while(true)

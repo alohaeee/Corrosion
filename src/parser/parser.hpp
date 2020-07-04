@@ -11,6 +11,12 @@
 using namespace corrosion::ast;
 namespace corrosion
 {
+	enum Restriction
+	{
+		NO_RESTRICT = 0,
+		STMT_EXPR = 1 <<0,
+		NO_STRUCT_LITERAL = 1 << 1
+	};
 	struct TokenCursorFrame
 	{
 		ast::data::Delim delim;
@@ -232,6 +238,17 @@ namespace corrosion
 			}
 		}
 
+		template<typename Re>
+		Re withRes(Restriction res, std::function<Re(Parser&)> func)
+		{
+			auto old = this->restrictions;
+			this->restrictions = res;
+			auto result = std::invoke(func,*this);
+			this->restrictions = old;
+
+			return result;
+		}
+
 
 //
 //		Pointer<Expr> parseBlock();
@@ -239,6 +256,8 @@ namespace corrosion
 //
 //		Pointer<Expr> parseWhileExpr();
 		Pointer<Expr> parseExpr();
+		inline Pointer<Expr> parseExprRes(Restriction res);
+		inline Pointer<Expr> parseAssocExpr();
 		Pointer<Expr> parseAssocExprWith(std::size_t minPrec, Pointer<Expr> lhs);
 		bool shouldContinueAsAssocExpr(Pointer<Expr>& e);
 		std::optional<AssocOp> checkAssocOp();
@@ -297,6 +316,7 @@ namespace corrosion
 		Token prevToken{};
 		std::vector<std::pair<TokenKind,TokenData>> expectedTokens{};
 		TokenCursor tokenCursor;
+		Restriction restrictions = NO_RESTRICT;
 
 	 	//Item root;
 

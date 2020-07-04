@@ -21,7 +21,6 @@ namespace corrosion
 		}
 		void printer(std::size_t level)
 		{
-			astLogPrint("let <pat>:<ty> = <expr>;", level);
 			astLogPrint("pat:", level);
 			if (pat)
 			{
