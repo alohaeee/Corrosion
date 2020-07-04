@@ -342,15 +342,67 @@ namespace corrosion
 			  }
 			  else if constexpr(std::is_same_v<T, ExprKind::Match>)
 			  {
+				  astLogPrint("type: Match",level+1);
 			  }
 			  else if constexpr (std::is_same_v<T, ExprKind::While>)
 			  {
+				  astLogPrint("type: While",level+1);
+				  if(arg.label)
+				  {
+						astLogPrint(fmt::format("Label: {}", arg.label->ident.name().toString()), level +1);
+				  }
+				  astLogPrint("cond:", level+1);
+				  if(arg.condition)
+				  {
+					  arg.condition->printer(level+2);
+				  }
+				  else
+				  {
+					  astLogPrint("BUG: There must be condition expr", level+2);
+				  }
+				  if(arg.block)
+				  {
+					  //	arg.block->printer(level+2);
+				  }
+				  else
+				  {
+					  astLogPrint("BUG: There must be block expr", level+2);
+				  }
 			  }
 			  else if constexpr (std::is_same_v<T, ExprKind::Loop>)
 			  {
+				  astLogPrint("type: Loop",level+1);
+				  if(arg.label)
+				  {
+					  astLogPrint(fmt::format("Label: {}", arg.label->ident.name().toString()), level +1);
+				  }
+				  if(arg.block)
+				  {
+					  //	arg.block->printer(level+2);
+				  }
+				  else
+				  {
+					  astLogPrint("BUG: There must be block expr", level+2);
+				  }
+
 			  }
 			  else if constexpr (std::is_same_v<T, ExprKind::ForLoop>)
 			  {
+				  astLogPrint("type: ForLoop",level+1);
+				  if(arg.label)
+				  {
+					  astLogPrint(fmt::format("Label: {}", arg.label->ident.name().toString()), level +1);
+				  }
+				  if(arg.pat)
+				  {
+					  astLogPrint("Pat:", level+1);
+					  arg.pat->printer(level+2);
+				  }
+				  if(arg.block)
+				  {
+					  //	arg.block->printer(level+2);
+				  }
+
 			  }
 			  else if constexpr (std::is_same_v<T, ExprKind::Literal>)
 			  {
