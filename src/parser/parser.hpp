@@ -248,6 +248,16 @@ namespace corrosion
 
 			return result;
 		}
+		template<typename Re>
+		Re withRes(Restriction res, std::function<Re()> func)
+		{
+			auto old = this->restrictions;
+			this->restrictions = res;
+			auto result = std::invoke(func);
+			this->restrictions = old;
+
+			return result;
+		}
 
 
 //
@@ -272,6 +282,7 @@ namespace corrosion
 		Pointer<Expr> parseLitMaybeMinus();
 		Pointer<Expr> parseCondExpr();
 		Pointer<Expr> parseWhileExpr();
+		Pointer<Expr> parseBlockExpr(std::optional<Label> optLabel, Span lo);
 
 		Pointer<Expr> parseForExpr();
 		Pointer<Expr> parseFnCallExpr(Pointer<Expr> &e, Span lo);
@@ -280,9 +291,9 @@ namespace corrosion
 
 		Pointer<Block> parseBlockCommon();
 
-		Pointer<Stmt> parseStmtWithoutRecovery();
+		std::optional<Stmt> parseStmtWithoutRecovery();
 		Pointer<Local> parseLocal();
-		Pointer<Stmt> parseFullStmt();
+		std::optional<Stmt> parseFullStmt();
 
 
 
@@ -308,7 +319,7 @@ namespace corrosion
 
 		//diagnistics
 
-		std::optional<Pointer<Expr>> checkNoChainedComparison(Pointer<Expr> innerOp,Spanned<AssocOp> outerOp);
+		bool checkNoChainedComparison(Pointer<Expr> innerOp, Spanned<AssocOp>&& outerOp);
 
 		std::shared_ptr<ParseSession> session;
 		/// The current token.

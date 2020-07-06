@@ -2,7 +2,7 @@
 
 namespace corrosion
 {
-	Pointer<Stmt> Parser::parseStmtWithoutRecovery()
+	std::optional<Stmt> Parser::parseStmtWithoutRecovery()
 	{
 		auto lo = token.span;
 		Stmt::KindUnion kind;
@@ -13,35 +13,41 @@ namespace corrosion
 		else if(isKwFollowedByIdent(kw::Mut))
 		{
 			session->errorSpan(lo,"missing keyword let");
-			//return parseLocal(lo
+			kind = StmtKind::Local{parseLocal()};
 		}
 		else if(isKwFollowedByIdent(kw::Auto))
 		{
 			session->errorSpan(lo,"write `let` instead of `auto` to introduce a new variable");
+			kind = StmtKind::Local{parseLocal()};
 		}
 		else if(isKwFollowedByIdent(sym::Var))
 		{
 			session->errorSpan(lo,"write `let` instead of `var` to introduce a new variable");
+			kind = StmtKind::Local{parseLocal()};
 		}
 //		else if(auto item = parseItemCommon(); parseItemCommon())
 //		{
 //
 //		}
+		else if(checkPath())
+		{
+
+		}
 		else if(eat(TokenKind::Semi))
 		{
-			///PUSTOI
+			kind = StmtKind::Empty{};
 		}
-//		else if(token.kind != TokenKind::CloseDelim && token.get)
-//		{
-///// PARSE EXPR BLOCK POKA NE CONEC.
-//		}
+		else if(token.kind != TokenKind::CloseDelim)
+		{
+/// PARSE EXPR BLOCK POKA NE CONEC.
+		}
 		else
 		{
-			/// OSHIBKA
+			return std::nullopt;
 		}
-		return MakePointer<Stmt>(lo.to(prevToken.span),std::move(kind),DUMMY_NODE_ID);
+		return Stmt{lo.to(prevToken.span),std::move(kind),DUMMY_NODE_ID};
 	}
-	Pointer<Stmt> Parser::parseFullStmt()
+	std::optional<Stmt> Parser::parseFullStmt()
 	{
 		auto stmt = parseStmtWithoutRecovery();
 		bool eatSemi = true;
@@ -76,7 +82,7 @@ namespace corrosion
 		}
 		stmt->span = stmt->span.to(prevToken.span);
 
-		return corrosion::Pointer<Stmt>();
+		return stmt;
 	}
 	Pointer<Local> Parser::parseLocal()
 	{
@@ -96,6 +102,7 @@ namespace corrosion
 	}
 	Pointer<Block> Parser::parseBlockCommon()
 	{
+		auto lo = token.span;
 		if(!eat(TokenKind::OpenDelim, data::Delim{data::Delim::Brace}))
 		{
 			session->errorSpan(token.span, "Expected to meet {, but found:");
@@ -108,14 +115,11 @@ namespace corrosion
 				break;
 			}
 			auto stmt = parseFullStmt();
-			//block->stmts.push_back()
-
-
-
+			block->stmts.push_back(std::move(stmt.value()));
 		}
+		block->span = lo.to(prevToken.span);
 
-
-		//return ;
+		return block;
 	}
 
 }

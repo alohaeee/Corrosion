@@ -18,10 +18,15 @@ namespace corrosion
     ///     inner_op   r2
 	///        /  \
     ///      l1    r1
-	std::optional<Pointer<Expr>> Parser::checkNoChainedComparison(Pointer<Expr> innerOp,Spanned<AssocOp> outerOp)
+	bool Parser::checkNoChainedComparison(Pointer<Expr> innerOp, Spanned<AssocOp>&& outerOp)
 	{
 		assert(outerOp.first.isComparison());
-		return std::optional<Pointer<Expr>>();
+		if(std::holds_alternative<ExprKind::Binary>(innerOp->kind))
+		{
+			session->errorSpan(outerOp.second, "comparison operators cannot be chained");
+			return true;
+		}
+		return false;
 	}
 
 }

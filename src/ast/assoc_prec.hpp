@@ -302,6 +302,18 @@ namespace corrosion
 				return false;
 			}
 		}
+
+		bool isAssignLike() const noexcept
+		{
+			switch(kind)
+			{
+			case Assign:
+			case AssignOp:
+				return true;
+			default:
+				return false;
+			}
+		}
 		std::optional<ast::data::BinOp> optAssignOp{};
 	};
 

@@ -26,108 +26,6 @@ namespace corrosion
 		return withRes<Pointer<Expr>>(res,&Parser::parseAssocExpr);
 	}
 
-
-
-
-//	Pointer<Expr> Parser::parseBlock()
-//	{
-//		while (look() == ast::TokenKind::OpenDelim)
-//		{
-//
-//		}
-//		return nullptr;
-//	}
-//	Pointer<Expr> Parser::parseBlockLine()
-//	{
-//
-//		if (look() == ast::TokenKind::Lifetime)
-//		{
-//			auto lifetime = shift();
-//			if (look() == ast::TokenKind::Ident)
-//			{
-//				auto ident = shift().value();
-//				auto data = ident.getData<ast::data::Ident>();
-//				auto symbol = data.symbol;
-//				if (symbol.isKeyword())
-//				{
-//					switch (symbol.data())
-//					{
-//					case kw::While:
-//						break;
-//					case kw::Loop:
-//						break;
-//					case kw::For:
-//						break;
-//					}
-//				}
-//			}
-//			m_session.errorSpan(lifetime->span, "expected while/for/loop after lifetime");
-//			return nullptr;
-//		}
-//		else
-//		{
-//			if (auto looked = look().value();look())
-//			{
-//				switch (looked)
-//				{
-//				case ast::TokenKind::Semi:
-//					// Return a NULL expression, nothing here.
-//					return nullptr;
-//				case ast::TokenKind::Ident:
-//				{
-//					auto ident = shift().value();
-//					auto data = ident.getData<ast::data::Ident>();
-//					auto symbol = data.symbol;
-//					if (symbol.isKeyword())
-//					{
-//						switch (symbol.data())
-//						{
-//						case kw::While:
-//							break;
-//						case kw::Loop:
-//							break;
-//						case kw::For:
-//							break;
-//						case kw::If:
-//							break;
-//						case kw::Match:
-//							break;
-//						case kw::Return:
-//						case kw::Break:
-//						case kw::Continue:
-//							break;
-//
-//						}
-//					}
-//				}
-//
-//				}
-//			}
-//
-//		}
-//		return nullptr;
-//	}
-//	Pointer<Expr> Parser::parseWhileExpr()
-//	{
-//		if (look() == ast::TokenKind::Ident)
-//		{
-//			auto ident = shift().value();
-//			auto data = ident.getData<ast::data::Ident>();
-//			auto symbol = data.symbol;
-//			switch (symbol.data())
-//			{
-//				// let expr
-//			case kw::Let:
-//				m_session.warnSpan(token(-1)->span, "let pattern in while can not be parsed");
-//			default:
-//				break;
-//				//ParseExpr()
-//			}
-//		}
-//		return nullptr;
-//	}
-//
-
 	Pointer<Expr> Parser::parseAssocExprWith(std::size_t minPrec, Pointer<Expr> lhs)
 	{
 		if (token.isRangeKind())
@@ -149,6 +47,17 @@ namespace corrosion
 		for (;(op=checkAssocOp())&& op;)
 		{
 			auto cur_op_span = token.span;
+
+			Restriction res;
+			if(op->isAssignLike())
+			{
+				res = static_cast<Restriction>(this->restrictions & Restriction::NO_STRUCT_LITERAL);
+			}
+			else
+			{
+				res = this->restrictions;
+			}
+
 			auto prec = op->precedence();
 			if (prec < minPrec)
 			{
@@ -156,6 +65,14 @@ namespace corrosion
 			}
 
 			shift();
+			if(op->isComparison())
+			{
+				if(this->checkNoChainedComparison(lhs,Spanned<AssocOp>{op.value(),cur_op_span}))
+				{
+					return lhs;
+				}
+			}
+
 
 			// Special cases:
 			if (op->kind == AssocOp::As)
@@ -185,7 +102,11 @@ namespace corrosion
 			{
 				prec_adjustment = 0;
 			}
-			auto rhs = parseAssocExprWith(prec+prec_adjustment,nullptr);
+			auto rhs = this->withRes<Pointer<Expr>>(static_cast<Restriction>(res - Restriction::STMT_EXPR),
+				[prec,prec_adjustment,this]() -> Pointer<Expr>{
+				return parseAssocExprWith(prec+prec_adjustment,nullptr);
+			});
+
 
 			auto span = Span::sum(lhs->span,rhs->span);
 			if(auto ast_op = op->toAstBinOp();ast_op)
@@ -303,20 +224,24 @@ namespace corrosion
 //		}
 		if(check(TokenKind::OpenDelim,data::Delim{data::Delim::Paren}))
 		{
+			session->criticalSpan(token.span, "Maybe start of Tuple expr, but we can parse it now");
+			return nullptr;
 			//this->parseTupleParensExpr();
 		}
 		else if(check(TokenKind::OpenDelim,data::Delim{data::Delim::Brace}))
 		{
-			//this->parseBlockExpr();
+			return parseBlockExpr(std::nullopt, token.span);
 		}
-//		else if(check(TokenKind::BinOp,data::BinOp{data::BinOp::Or})||check(TokenKind::OrOr))
-//		{
-//			//this->parseClosureExpr();
-//		}
-//		else if(check(TokenKind::BinOp,data::BinOp{data::BinOp::Or})||check(TokenKind::OrOr))
-//		{
-//			//this->eatLt();
-//		}
+		else if(check(TokenKind::BinOp,data::BinOp{data::BinOp::Or})||check(TokenKind::OrOr))
+		{
+			session->criticalSpan(token.span, "Maybe start of Closure expr, but we can parse it now");
+			return nullptr;
+		}
+		else if(check(TokenKind::Lt) || check(TokenKind::BinOp, data::BinOp{data::BinOp::Shl}))
+		{
+			session->criticalSpan(token.span, "Maybe start of QPath expr, but we can parse it now");
+			return nullptr;
+		}
 		else if(check(TokenKind::OpenDelim,data::Delim{data::Delim::Bracket}))
 		{
 			//this->parseArrayOrRepeatExpr();
@@ -472,6 +397,11 @@ namespace corrosion
 		auto index = parseExpr();
 		expect(TokenKind::CloseDelim,data::Delim{data::Delim::Bracket});
 		return MakePointer<Expr>(lo.to(index->span),ExprKind::Index{e,index});
+	}
+	Pointer<Expr> Parser::parseBlockExpr(std::optional<Label> optLabel, Span lo)
+	{
+		auto block = parseBlockCommon();
+		return MakePointer<Expr>(lo.to(block->span),ExprKind::Block{block,optLabel});
 	}
 
 }
