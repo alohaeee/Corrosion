@@ -101,7 +101,6 @@ namespace corrosion
 				  {
 					  astLogPrint(s.ident.name().toString(), level + 2);
 				  }
-
 			  }
 			  else
 			  {

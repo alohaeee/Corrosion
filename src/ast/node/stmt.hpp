@@ -2,6 +2,9 @@
 #define CORROSION_SRC_AST_NODE_STMT_HPP_
 
 #include "ast/fwd.hpp"
+#include "ast/node/expr.hpp"
+#include "ast/node/type.hpp"
+#include "ast/node/pattern.hpp"
 
 namespace corrosion
 {
@@ -30,6 +33,7 @@ namespace corrosion
 			{
 				astLogPrint("BUG: There must be pattern", level + 1);
 			}
+
 			if (type)
 			{
 				astLogPrint("type:", level);
@@ -82,13 +86,12 @@ namespace corrosion
 		}
 		void addTrailingSemicolon()
 		{
-			if(std::holds_alternative<StmtKind::Expr>(kind))
+			if (std::holds_alternative<StmtKind::Expr>(kind))
 			{
-				kind = StmtKind::Semi{std::get<StmtKind::Expr>(kind).expr};
+				kind = StmtKind::Semi{ std::get<StmtKind::Expr>(kind).expr };
 			}
 
 		}
-
 
 		void printer(std::size_t level)
 		{
@@ -102,6 +105,22 @@ namespace corrosion
 				  astLogPrint("kind: Local", level + 1);
 				  astLogPrint("internal:", level + 1);
 				  arg.local->printer(level + 2);
+			  }
+			  else if constexpr(std::is_same_v<T, StmtKind::Expr>)
+			  {
+				  astLogPrint("kind: Expr", level + 1);
+				  astLogPrint("internal:", level + 1);
+				  arg.expr->printer(level + 2);
+			  }
+			  else if constexpr(std::is_same_v<T, StmtKind::Semi>)
+			  {
+				  astLogPrint("kind: Semi", level + 1);
+				  astLogPrint("internal:", level + 1);
+				  arg.expr->printer(level + 2);
+			  }
+			  else if constexpr(std::is_same_v<T, StmtKind::Empty>)
+			  {
+				  astLogPrint("kind: Empty", level + 1);
 			  }
 			  else
 			  {

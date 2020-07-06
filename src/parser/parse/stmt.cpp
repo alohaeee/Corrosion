@@ -29,17 +29,18 @@ namespace corrosion
 //		{
 //
 //		}
-		else if(checkPath())
-		{
-
-		}
+//		else if(checkPath())
+//		{
+//
+//		}
 		else if(eat(TokenKind::Semi))
 		{
 			kind = StmtKind::Empty{};
 		}
-		else if(token.kind != TokenKind::CloseDelim)
+		else if(token.kind !=TokenKind::CloseDelim && token.data != TokenData(data::Delim{data::Delim::Brace}))
 		{
-/// PARSE EXPR BLOCK POKA NE CONEC.
+			auto e = parseExprRes(Restriction::STMT_EXPR);
+			kind = StmtKind::Expr{e};
 		}
 		else
 		{

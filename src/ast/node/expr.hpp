@@ -228,6 +228,10 @@ namespace corrosion
 		{
 			Pointer<Expr> expr;
 		};
+		struct Paren
+		{
+			Pointer<Expr> expr;
+		};
 		struct Error
 		{
 
@@ -259,7 +263,9 @@ namespace corrosion
 									   ExprKind::Break,
 									   ExprKind::Continue,
 									   ExprKind::Try,
-									   ExprKind::Return>;
+									   ExprKind::Return,
+									   ExprKind::Paren,
+									   ExprKind::Error>;
 		KindUnion kind{};
 		NodeId id;
 
@@ -443,7 +449,7 @@ namespace corrosion
 				  if(arg.rhs)
 				  {
 					  astLogPrint("rhs:", level+1);
-					  arg.lhs->printer(level+2);
+					  arg.rhs->printer(level+2);
 				  }
 				  else
 				  {
@@ -452,12 +458,11 @@ namespace corrosion
 			  }
 			  else if constexpr(std::is_same_v<T, ExprKind::Unary>)
 			  {
-				  astLogPrint("type: Binary",level+1);
+				  astLogPrint("type: Unary",level+1);
 				  astLogPrint(fmt::format("op: {}", UnOp::toString(arg.oper)),level+1);
 				  if(arg.expr)
 				  {
-					  astLogPrint("expr:", level+1);
-					  arg.expr->printer(level+2);
+					  arg.expr->printer(level+1);
 				  }
 				  else
 				  {
@@ -493,6 +498,22 @@ namespace corrosion
 					  astLogPrint("expr:", level+1);
 					  arg.expr->printer(level+2);
 				  }
+			  }
+			  else if constexpr (std::is_same_v<T,ExprKind::Paren>)
+			  {
+				  astLogPrint("type: Paren",level+1);
+				  if(arg.expr)
+				  {
+					  arg.expr->printer(level+1);
+				  }
+				  else
+				  {
+					  astLogPrint("BUG: There must be internal expr", level+1);
+				  }
+			  }
+			  else if constexpr (std::is_same_v<T,ExprKind::Error>)
+			  {
+				  astLogPrint("type: Error",level+1);
 			  }
 			  else
 			  {

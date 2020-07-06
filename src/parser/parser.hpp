@@ -210,6 +210,7 @@ namespace corrosion
 				return ident;
 			}
 			session->criticalSpan(token.span,"Trying to eat ident, but find: ");
+			return Ident{};
 		}
 
 		void expect(TokenKind kind, TokenData&& data = data::Empty{})
@@ -282,6 +283,7 @@ namespace corrosion
 		Pointer<Expr> parseLitMaybeMinus();
 		Pointer<Expr> parseCondExpr();
 		Pointer<Expr> parseWhileExpr();
+		Pointer<Expr> parseTupleParensExpr();
 		Pointer<Expr> parseBlockExpr(std::optional<Label> optLabel, Span lo);
 
 		Pointer<Expr> parseForExpr();

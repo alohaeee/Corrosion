@@ -77,11 +77,13 @@ namespace corrosion
 			// Special cases:
 			if (op->kind == AssocOp::As)
 			{
+				session->criticalSpan(cur_op_span,"TODO: can't parse as cast");
 				//lhs = self.parse_assoc_op_cast(lhs, lhs_span, ExprKind::Cast)?;
 				continue;
 			}
 			else if (op->kind == AssocOp::Colon)
 			{
+				session->criticalSpan(cur_op_span,"TODO: can't parse ascribe");
 				//lhs = self.parse_assoc_op_ascribe(lhs, lhs_span)?;
 				continue;
 			}
@@ -90,6 +92,7 @@ namespace corrosion
 				// If we didn’t have to handle `x..`/`x..=`, it would be pretty easy to
 				// generalise it to the Fixity::None code.
 				///lhs = self.parse_range_expr(prec, lhs, op, cur_op_span)?;
+				session->criticalSpan(cur_op_span,"TODO: can't parse dot's expressions");
 				break;
 			}
 			auto fixity = op->fixity();
@@ -183,13 +186,13 @@ namespace corrosion
 			case data::BinOp::Star:
 				return this->parseUnaryExpr(lo,UnOpKind::Deref); // `*expr`
 			case data::BinOp::And:
-				session->errorSpan(lo,"TODO: can't parse borrow expr");
+				session->criticalSpan(lo,"TODO: can't parse borrow expr");
 				//return this->parseBorrowExpr()
 				return nullptr;
 			}
 		}
 		case TokenKind::AndAnd:
-			session->errorSpan(lo,"TODO: can't parse borrow expr");
+			session->criticalSpan(lo,"TODO: can't parse borrow expr");
 			//return this->parseBorrowExpr()
 			return nullptr;
 		default:
@@ -224,9 +227,7 @@ namespace corrosion
 //		}
 		if(check(TokenKind::OpenDelim,data::Delim{data::Delim::Paren}))
 		{
-			session->criticalSpan(token.span, "Maybe start of Tuple expr, but we can parse it now");
-			return nullptr;
-			//this->parseTupleParensExpr();
+			return this->parseTupleParensExpr();
 		}
 		else if(check(TokenKind::OpenDelim,data::Delim{data::Delim::Brace}))
 		{
@@ -295,10 +296,13 @@ namespace corrosion
 //		{
 //			//this->parseLetExpr();
 //		}
+		else if (token.kind == TokenKind::Literal)
+		{
+			return this->parseLitExpr();
+		}
 		else
 		{
-
-			return parseLitExpr();
+			session->criticalSpan(token.span, "BUG: Rich the bottom in parsing Expr");
 		}
 		return nullptr;
 
@@ -402,6 +406,36 @@ namespace corrosion
 	{
 		auto block = parseBlockCommon();
 		return MakePointer<Expr>(lo.to(block->span),ExprKind::Block{block,optLabel});
+	}
+	Pointer<Expr> Parser::parseTupleParensExpr()
+	{
+		auto lo = token.span;
+		expect(TokenKind::OpenDelim,data::Delim{data::Delim::Paren});
+		std::vector<Pointer<Expr>> exprs;
+		while(!eat(TokenKind::CloseDelim,data::Delim{data::Delim::Paren}))
+		{
+			auto e = parseExpr();
+			exprs.push_back(e);
+			if(eat(TokenKind::Comma))
+			{
+				continue;
+			}
+			else
+			{
+				session->criticalSpan(token.span, "waited for comma or close paren ')', but found:");
+			}
+		}
+		Expr::KindUnion kind;
+		if(exprs.size() == 1)
+		{
+			kind = ExprKind::Paren{exprs.back()};
+		}
+		else
+		{
+			kind = ExprKind::Error{};
+			session->errorSpan(lo.to(prevToken.span), "Tuple expressions are not allowed");
+		}
+		return MakePointer<Expr>(lo.to(prevToken.span), std::move(kind));
 	}
 
 }
