@@ -80,6 +80,15 @@ namespace corrosion
 		Stmt(const Span& span, KindUnion&& kind, NodeId id = DUMMY_NODE_ID) : span(span), kind(kind), id(id)
 		{
 		}
+		void addTrailingSemicolon()
+		{
+			if(std::holds_alternative<StmtKind::Expr>(kind))
+			{
+				kind = StmtKind::Semi{std::get<StmtKind::Expr>(kind).expr};
+			}
+
+		}
+
 
 		void printer(std::size_t level)
 		{

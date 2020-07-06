@@ -221,7 +221,7 @@ namespace corrosion
 					this->shift();
 					return;
 				}
-				session->criticalSpan(token.span,
+				session->errorSpan(token.span,
 					fmt::format("Expected token: {} , but found: ",Token{kind,{},data}.printable()));
 			}
 			else
@@ -234,7 +234,7 @@ namespace corrosion
 				msg.pop_back();
 				msg.pop_back();
 				msg.pop_back();
-				session->criticalSpan(token.span,fmt::format("Expected: {}, but found:",msg));
+				session->errorSpan(token.span,fmt::format("Expected: {}, but found:",msg));
 			}
 		}
 
@@ -282,6 +282,7 @@ namespace corrosion
 
 		Pointer<Stmt> parseStmtWithoutRecovery();
 		Pointer<Local> parseLocal();
+		Pointer<Stmt> parseFullStmt();
 
 
 
