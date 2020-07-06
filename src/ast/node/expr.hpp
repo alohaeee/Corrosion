@@ -327,7 +327,7 @@ namespace corrosion
 				astLogPrint("block:", level+1);
 				if(arg.block)
 				{
-					//	arg.block->printer(level+2);
+					arg.block->printer(level+2);
 				}
 				else
 				{
@@ -362,7 +362,7 @@ namespace corrosion
 				  }
 				  if(arg.block)
 				  {
-					  //	arg.block->printer(level+2);
+					  arg.block->printer(level+2);
 				  }
 				  else
 				  {
@@ -378,7 +378,7 @@ namespace corrosion
 				  }
 				  if(arg.block)
 				  {
-					  //	arg.block->printer(level+2);
+					  arg.block->printer(level+2);
 				  }
 				  else
 				  {
@@ -413,7 +413,7 @@ namespace corrosion
 				  }
 				  if(arg.block)
 				  {
-					  //	arg.block->printer(level+2);
+					  	arg.block->printer(level+2);
 				  }
 				  else
 				  {
@@ -462,6 +462,36 @@ namespace corrosion
 				  else
 				  {
 					  astLogPrint("BUG: There must be expr", level+2);
+				  }
+			  }
+			  else if constexpr (std::is_same_v<T, ExprKind::Return>)
+			  {
+				  astLogPrint("type: Return",level+1);
+				  if(arg.expr)
+				  {
+					  astLogPrint("expr:", level+1);
+					  arg.expr->printer(level+2);
+				  }
+			  }
+			  else if constexpr (std::is_same_v<T, ExprKind::Continue>)
+			  {
+				  astLogPrint("type: Continue",level+1);
+				  if(arg.label)
+				  {
+					  astLogPrint(fmt::format("label: {}", arg.label->ident.name().toString()), level +1);
+				  }
+			  }
+			  else if constexpr (std::is_same_v<T, ExprKind::Break>)
+			  {
+				  astLogPrint("type: Break",level+1);
+				  if(arg.label)
+				  {
+					  astLogPrint(fmt::format("label: {}", arg.label->ident.name().toString()), level +1);
+				  }
+				  if(arg.expr)
+				  {
+					  astLogPrint("expr:", level+1);
+					  arg.expr->printer(level+2);
 				  }
 			  }
 			  else
