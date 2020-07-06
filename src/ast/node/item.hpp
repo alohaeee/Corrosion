@@ -54,6 +54,8 @@ namespace corrosion
 		std::vector<Stmt> stmts;
 		NodeId id;
 		Span span;
+
+		void printer (std::size_t level)
 	};
 
 

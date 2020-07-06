@@ -71,9 +71,53 @@ namespace corrosion
 				return BinOpKind::Shr;
 			}
 		}
+		static std::string toString (BinOpKind op)
+		{
+			switch(op)
+			{
+			case BinOpKind::Add:
+				return "+";
+			case BinOpKind::Sub:
+				return "-";
+			case BinOpKind::Mul:
+				return "*";
+			case BinOpKind::Div:
+				return "/";
+			case BinOpKind::Rem:
+				return "%";
+			case BinOpKind::And:
+				return "&&";
+			case BinOpKind::Or:
+				return "||";
+			case BinOpKind::BitXor:
+				return "^";
+			case BinOpKind::BitAnd:
+				return "&";
+			case BinOpKind::BitOr:
+				return "|";
+			case BinOpKind::Shl:
+				return "<<";
+			case BinOpKind::Shr:
+				return ">>";
+			case BinOpKind::Eq:
+				return "==";
+			case BinOpKind::Lt:
+				return "<";
+			case BinOpKind::Le:
+				return "<=";
+			case BinOpKind::Ne:
+				return "!=";
+			case BinOpKind::Ge:
+				return ">=";
+			case BinOpKind::Gt:
+				return ">";
+			default:
+				return "";
+			}
+		}
 	};
 
-	enum class UnOp
+	enum class UnOpKind
 	{
 		/// The `*` operator for dereferencing
 		Deref,
@@ -81,6 +125,24 @@ namespace corrosion
 		Not,
 		/// The `-` operator for negation
 		Neg,
+	};
+
+	struct UnOp
+	{
+		static std::string toString (UnOpKind op)
+		{
+			switch(op)
+			{
+			case UnOpKind::Deref:
+				return "*";
+			case UnOpKind::Not:
+				return "!";
+			case UnOpKind::Neg:
+				return "-";
+			default:
+				return "";
+			}
+		}
 	};
 }
 

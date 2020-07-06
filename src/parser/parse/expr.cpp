@@ -251,16 +251,16 @@ namespace corrosion
 		switch(token.kind)
 		{
 		case TokenKind::Not:
-			return this->parseUnaryExpr(lo,UnOp::Not); // `!expr`
+			return this->parseUnaryExpr(lo,UnOpKind::Not); // `!expr`
 		case TokenKind::BinOp:
 		{
 			auto data = token.getData<ast::data::BinOp>();
 			switch(data.kind)
 			{
 			case data::BinOp::Minus:
-				return this->parseUnaryExpr(lo,UnOp::Neg); // `-expr`
+				return this->parseUnaryExpr(lo,UnOpKind::Neg); // `-expr`
 			case data::BinOp::Star:
-				return this->parseUnaryExpr(lo,UnOp::Deref); // `*expr`
+				return this->parseUnaryExpr(lo,UnOpKind::Deref); // `*expr`
 			case data::BinOp::And:
 				session->errorSpan(lo,"TODO: can't parse borrow expr");
 				//return this->parseBorrowExpr()
@@ -287,7 +287,7 @@ namespace corrosion
 		auto ex = this->parsePrefixExpr();
 		return {ex,lo.to(ex->span)};
 	}
-	Pointer<Expr> Parser::parseUnaryExpr(Span lo, UnOp op)
+	Pointer<Expr> Parser::parseUnaryExpr(Span lo, UnOpKind op)
 	{
 		auto&& [ex,span] = parsePrefixExprCommon(lo);
 		return MakePointer<Expr>(span,ExprKind::Unary{op,ex});
@@ -406,7 +406,7 @@ namespace corrosion
 		auto lit = parseLitExpr();
 		if(minus_present && lit)
 		{
-			return MakePointer<Expr>(lo.to(lit->span),ExprKind::Unary{UnOp::Neg,lit});
+			return MakePointer<Expr>(lo.to(lit->span),ExprKind::Unary{ UnOpKind::Neg, lit});
 		}
 		return lit;
 	}

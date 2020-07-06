@@ -2,7 +2,7 @@
 #define CORROSION_SRC_AST_NODE_EXPR_HPP_
 
 #include "ast/fwd.hpp"
-
+#include "ast/node/pattern.hpp"
 #include "ast/node/item.hpp"
 #include "ast/node/op.hpp"
 #include "ast/node/literal.hpp"
@@ -83,7 +83,7 @@ namespace corrosion
 		/// A unary operation (e.g., `!x`, `*x`).
 		struct Unary
 		{
-			UnOp oper;
+			UnOpKind oper;
 			Pointer<Expr> expr;
 		};
 		/// A cast (e.g., `foo as f64`).
@@ -349,7 +349,7 @@ namespace corrosion
 				  astLogPrint("type: While",level+1);
 				  if(arg.label)
 				  {
-						astLogPrint(fmt::format("Label: {}", arg.label->ident.name().toString()), level +1);
+						astLogPrint(fmt::format("label: {}", arg.label->ident.name().toString()), level +1);
 				  }
 				  astLogPrint("cond:", level+1);
 				  if(arg.condition)
@@ -374,7 +374,7 @@ namespace corrosion
 				  astLogPrint("type: Loop",level+1);
 				  if(arg.label)
 				  {
-					  astLogPrint(fmt::format("Label: {}", arg.label->ident.name().toString()), level +1);
+					  astLogPrint(fmt::format("label: {}", arg.label->ident.name().toString()), level +1);
 				  }
 				  if(arg.block)
 				  {
@@ -391,16 +391,33 @@ namespace corrosion
 				  astLogPrint("type: ForLoop",level+1);
 				  if(arg.label)
 				  {
-					  astLogPrint(fmt::format("Label: {}", arg.label->ident.name().toString()), level +1);
+					  astLogPrint(fmt::format("label: {}", arg.label->ident.name().toString()), level +1);
 				  }
 				  if(arg.pat)
 				  {
-					  astLogPrint("Pat:", level+1);
+					  astLogPrint("pat:", level+1);
 					  arg.pat->printer(level+2);
+				  }
+				  else
+				  {
+					  astLogPrint("BUG: There must be pattern", level+2);
+				  }
+				  if(arg.expr)
+				  {
+				  	astLogPrint("expr:", level+1);
+				  	arg.expr->printer(level+2);
+				  }
+				  else
+				  {
+					  astLogPrint("BUG: There must be expr", level+2);
 				  }
 				  if(arg.block)
 				  {
 					  //	arg.block->printer(level+2);
+				  }
+				  else
+				  {
+					  astLogPrint("BUG: There must be block expr", level+2);
 				  }
 
 			  }
@@ -409,6 +426,43 @@ namespace corrosion
 				  astLogPrint("type: Literal",level+1);
 				  astLogPrint("internal:", level+1);
 				  arg.printer(level+2);
+			  }
+			  else if constexpr(std::is_same_v<T, ExprKind::Binary>)
+			  {
+				  astLogPrint("type: Binary",level+1);
+				  astLogPrint(fmt::format("op: {}", BinOp::toString(arg.oper)),level+1);
+				  if(arg.lhs)
+				  {
+				  	astLogPrint("lhs:", level+1);
+				  	arg.lhs->printer(level+2);
+				  }
+				  else
+				  {
+					  astLogPrint("BUG: There must be lhs arg", level+2);
+				  }
+				  if(arg.rhs)
+				  {
+					  astLogPrint("rhs:", level+1);
+					  arg.lhs->printer(level+2);
+				  }
+				  else
+				  {
+					  astLogPrint("BUG: There must be rhs arg", level+2);
+				  }
+			  }
+			  else if constexpr(std::is_same_v<T, ExprKind::Unary>)
+			  {
+				  astLogPrint("type: Binary",level+1);
+				  astLogPrint(fmt::format("op: {}", UnOp::toString(arg.oper)),level+1);
+				  if(arg.expr)
+				  {
+					  astLogPrint("expr:", level+1);
+					  arg.expr->printer(level+2);
+				  }
+				  else
+				  {
+					  astLogPrint("BUG: There must be expr", level+2);
+				  }
 			  }
 			  else
 			  {

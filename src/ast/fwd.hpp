@@ -82,7 +82,7 @@ namespace corrosion
 	// >------Op------<
 	enum class BinOpKind;
 	struct BinOp;
-	enum class UnOp;
+	enum class UnOpKind;
 
 	// >------Literal------<
 	struct Literal;
