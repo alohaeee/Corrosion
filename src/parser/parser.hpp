@@ -14,7 +14,7 @@ namespace corrosion
 	enum Restriction
 	{
 		NO_RESTRICT = 0,
-		STMT_EXPR = 1 <<0,
+		STMT_EXPR = 1 << 0,
 		NO_STRUCT_LITERAL = 1 << 1
 	};
 	struct TokenCursorFrame
@@ -25,34 +25,39 @@ namespace corrosion
 		TreeCursor cursor;
 		bool closeDelim;
 
-		TokenCursorFrame(data::Delim delim, DelimSpan&& span, TreeCursor&& stream) : openDelim{ delim.isEmpty()},
-		closeDelim{delim.isEmpty()}, delim{delim}, span{span}, cursor{stream}
-		{}
+		TokenCursorFrame(data::Delim delim, DelimSpan&& span, TreeCursor&& stream) : openDelim{ delim.isEmpty() },
+																					 closeDelim{ delim.isEmpty() },
+																					 delim{ delim },
+																					 span{ span },
+																					 cursor{ stream }
+		{
+		}
 	};
 	struct TokenCursor
 	{
-		TokenCursor(TokenCursorFrame&& frame) : frame{frame}
-		{}
+		TokenCursor(TokenCursorFrame&& frame) : frame{ frame }
+		{
+		}
 		Token next()
 		{
-			while(true)
+			while (true)
 			{
-				TreeAndJoint tree{Token{},IsJoint::NotJoint};
-				if(!this->frame.openDelim)
+				TreeAndJoint tree{ Token{}, IsJoint::NotJoint };
+				if (!this->frame.openDelim)
 				{
 					this->frame.openDelim = true;
-					tree = {TokenTree::openTT(this->frame.span,this->frame.delim), IsJoint::NotJoint};
+					tree = { TokenTree::openTT(this->frame.span, this->frame.delim), IsJoint::NotJoint };
 				}
-				else if(auto next_tree = this->frame.cursor.nextWithJoint();next_tree)
+				else if (auto next_tree = this->frame.cursor.nextWithJoint();next_tree)
 				{
 					tree = next_tree.value();
 				}
-				else if(!this->frame.closeDelim)
+				else if (!this->frame.closeDelim)
 				{
 					this->frame.closeDelim = true;
-					tree = {TokenTree::closeTT(this->frame.span,this->frame.delim), IsJoint::NotJoint};
+					tree = { TokenTree::closeTT(this->frame.span, this->frame.delim), IsJoint::NotJoint };
 				}
-				else if(stack.size())
+				else if (stack.size())
 				{
 					this->frame = this->stack.back();
 					this->stack.pop_back();
@@ -60,18 +65,21 @@ namespace corrosion
 				}
 				else
 				{
-					return Token{TokenKind::Eof};
+					return Token{ TokenKind::Eof };
 				}
 
-
-				if(tree.first.isToken())
+				if (tree.first.isToken())
 				{
 					return tree.first.getToken();
 				}
 				else
 				{
 					auto delim = tree.first.getDelimited();
-					this->stack.push_back(TokenCursorFrame{delim.kind,std::move(delim.span),std::move(delim.stream)});
+					this->stack.push_back(this->frame);
+					this->frame = TokenCursorFrame{ delim.kind, std::move(delim.span),
+															std::move(delim.stream) };
+
+
 				}
 			}
 		}
@@ -86,19 +94,23 @@ namespace corrosion
 			return tokenCursor.next();
 		}
 	 public:
-		Parser(std::shared_ptr<ParseSession>& sess,TokenStream&& stream) : session(sess),
-			tokenCursor(TokenCursorFrame{data::Delim{data::Delim::NoDelim},DelimSpan::Dummy(),std::move(stream)})
+		Parser(std::shared_ptr<ParseSession>& sess, TokenStream&& stream) : session(sess),
+																			tokenCursor(TokenCursorFrame{
+																				data::Delim{ data::Delim::NoDelim },
+																				DelimSpan::Dummy(), std::move(stream) })
 		{
 			shift();
 		}
 		void shiftWith(Token&& nextTok)
 		{
-			if(this->prevToken.kind == TokenKind::Eof)
+			if (this->prevToken.kind == TokenKind::Eof)
 			{
-				this->session->criticalSpan(nextTok.span,"attempted to bump the parser past EOF (may be stuck in a loop)");
+				this->session->criticalSpan(nextTok.span,
+					"attempted to bump the parser past EOF (may be stuck in a loop)");
 			}
 			this->prevToken = std::move(this->token);
 			this->token = nextTok;
+			CR_LOG_TRACE(token.printable());
 
 			this->expectedTokens.clear();
 		}
@@ -115,24 +127,24 @@ namespace corrosion
 		bool check(TokenKind kind, TokenData&& data = data::Empty{})
 		{
 			auto is_present = this->token.kind == kind && this->token.data == data;
-			if(!is_present)
+			if (!is_present)
 			{
-				this->expectedTokens.emplace_back(kind,data);
+				this->expectedTokens.emplace_back(kind, data);
 			}
 			return is_present;
 		}
-		bool checkOrExpected(bool ok,TokenKind kind, const TokenData& data = data::Empty{})
+		bool checkOrExpected(bool ok, TokenKind kind, const TokenData& data = data::Empty{})
 		{
-			if(ok)
+			if (ok)
 			{
 				return true;
 			}
-			expectedTokens.emplace_back(kind,data);
+			expectedTokens.emplace_back(kind, data);
 			return false;
 		}
 		bool checkPath()
 		{
-			return checkOrExpected(token.isPathStart(), token.kind,token.data);
+			return checkOrExpected(token.isPathStart(), token.kind, token.data);
 		}
 		bool checkKeyword(SymType sym)
 		{
@@ -142,8 +154,8 @@ namespace corrosion
 		/// Consumes a token 'tok' if it exists. Returns whether the given token was present.
 		bool eat(TokenKind kind, TokenData&& data = data::Empty{})
 		{
-			auto is_present = check(kind,std::move(data));
-			if(is_present)
+			auto is_present = check(kind, std::move(data));
+			if (is_present)
 			{
 				this->shift();
 			}
@@ -152,7 +164,7 @@ namespace corrosion
 		}
 		bool eatKeyword(SymType sym)
 		{
-			if(this->checkKeyword(sym))
+			if (this->checkKeyword(sym))
 			{
 				this->shift();
 				return true;
@@ -161,30 +173,30 @@ namespace corrosion
 		}
 		std::optional<Label> eatLabel()
 		{
-			if(auto ident = token.lifetime();ident)
+			if (auto ident = token.lifetime();ident)
 			{
 				this->shift();
-				return Label{ident.value()};
+				return Label{ ident.value() };
 			}
 			return std::nullopt;
 		}
 		Token lookahead(std::size_t n)
 		{
 			auto tree = tokenCursor.frame.cursor.lookahead(n);
-			if(tree)
+			if (tree)
 			{
-				if(tree->first.isToken())
+				if (tree->first.isToken())
 				{
 					return tree->first.getToken();
 				}
 				else
 				{
 					auto delim = tree->first.getDelimited();
-					return Token{TokenKind::OpenDelim,delim.span.close,delim.kind};
+					return Token{ TokenKind::OpenDelim, delim.span.close, delim.kind };
 				}
 
 			}
-			return Token{TokenKind::CloseDelim,tokenCursor.frame.span.close,tokenCursor.frame.delim};
+			return Token{ TokenKind::CloseDelim, tokenCursor.frame.span.close, tokenCursor.frame.delim };
 
 		}
 		/// Is the given keyword `kw` followed by a non-reserved identifier?
@@ -195,7 +207,7 @@ namespace corrosion
 
 		Mutability parseMutability()
 		{
-			if(eatKeyword(kw::Mut))
+			if (eatKeyword(kw::Mut))
 			{
 				return Mutability::Mut;
 			}
@@ -203,39 +215,44 @@ namespace corrosion
 		}
 		Ident parseIdent()
 		{
-			if(token.isIdent())
+			if (token.isIdent())
 			{
-				auto ident = Ident{token.getData<data::Ident>().symbol,token.span};
+				auto ident = Ident{ token.getData<data::Ident>().symbol, token.span };
 				this->shift();
 				return ident;
 			}
-			session->criticalSpan(token.span,"Trying to eat ident, but find: ");
+			session->criticalSpan(token.span, "trying to eat ident, but find: ");
 			return Ident{};
 		}
 
 		void expect(TokenKind kind, TokenData&& data = data::Empty{})
 		{
-			if(expectedTokens.empty())
+			if (expectedTokens.empty())
 			{
-				if(token.kind == kind && data == token.data)
+				if (token.kind == kind && data == token.data)
 				{
 					this->shift();
 					return;
 				}
-				session->errorSpan(token.span,
-					fmt::format("Expected token: {} , but found: ",Token{kind,{},data}.printable()));
+				Span span = token.span;
+				if(token.kind == TokenKind::Eof)
+				{
+					span = prevToken.span;
+				}
+				session->errorSpan(span,
+					fmt::format("expected token: {}", Token{ kind, {}, data }.printable()));
 			}
 			else
 			{
 				std::string msg;
-				for(auto &&[kind,data]: expectedTokens)
+				for (auto &&[kind, data]: expectedTokens)
 				{
-					msg+=(fmt::format("({}) or ",Token{kind,{},data}.printable()));
+					msg += (fmt::format("({}) or ", Token{ kind, {}, data }.printable()));
 				}
 				msg.pop_back();
 				msg.pop_back();
 				msg.pop_back();
-				session->errorSpan(token.span,fmt::format("Expected: {}, but found:",msg));
+				session->errorSpan(token.span, fmt::format("expected: {}", msg));
 			}
 		}
 
@@ -244,7 +261,7 @@ namespace corrosion
 		{
 			auto old = this->restrictions;
 			this->restrictions = res;
-			auto result = std::invoke(func,*this);
+			auto result = std::invoke(func, *this);
 			this->restrictions = old;
 
 			return result;
@@ -259,7 +276,6 @@ namespace corrosion
 
 			return result;
 		}
-
 
 //
 //		Pointer<Expr> parseBlock();
@@ -282,13 +298,21 @@ namespace corrosion
 		Pointer<Expr> parseLitExpr();
 		Pointer<Expr> parseLitMaybeMinus();
 		Pointer<Expr> parseCondExpr();
-		Pointer<Expr> parseWhileExpr();
+		Pointer<Expr> parseWhileExpr(std::optional<Label> optLabel, Span lo);
+		Pointer<Expr> parseLoopExpr(std::optional<Label> optLabel, Span lo);
 		Pointer<Expr> parseTupleParensExpr();
 		Pointer<Expr> parseBlockExpr(std::optional<Label> optLabel, Span lo);
+		Pointer<Expr> parseArrayOrRepeatExpr();
+		Pointer<Expr> parseStartPathExpr();
+		Pointer<Expr> parseReturnExpr();
+		Pointer<Expr> parseBreakExpr();
+		Pointer<Expr> parseForExpr(std::optional<Label> optLabel, Span lo);
+		Pointer<Expr> parseIfExpr();
+		Pointer<Expr> parseElseExpr();
 
-		Pointer<Expr> parseForExpr();
-		Pointer<Expr> parseFnCallExpr(Pointer<Expr> &e, Span lo);
-		Pointer<Expr> parseIndexExpr(Pointer<Expr> &e, Span lo);
+		Pointer<Expr> parseLabeledExpr(Label label);
+		Pointer<Expr> parseFnCallExpr(Pointer<Expr>& e, Span lo);
+		Pointer<Expr> parseIndexExpr(Pointer<Expr>& e, Span lo);
 		AnonConst parseAnonConstExpr();
 
 		Pointer<Block> parseBlockCommon();
@@ -296,8 +320,6 @@ namespace corrosion
 		std::optional<Stmt> parseStmtWithoutRecovery();
 		Pointer<Local> parseLocal();
 		std::optional<Stmt> parseFullStmt();
-
-
 
 		inline Pointer<Pat> parsePat();
 		Pointer<Pat> parseTopPat(bool gateOr);
@@ -308,12 +330,8 @@ namespace corrosion
 		PatKind::Ident parsePatIdentRef();
 		PatKind::Ident parsePatIdent(BindingMode bindingMode);
 
-
-
 		Pointer<Ty> parseTy();
 		Ty::KindUnion parseArrayTy();
-
-
 
 		Path parsePath();
 		void parsePathSegments(std::vector<PathSegment>& segments);
@@ -328,11 +346,11 @@ namespace corrosion
 		Token token{};
 		/// The previous token.
 		Token prevToken{};
-		std::vector<std::pair<TokenKind,TokenData>> expectedTokens{};
+		std::vector<std::pair<TokenKind, TokenData>> expectedTokens{};
 		TokenCursor tokenCursor;
 		Restriction restrictions = NO_RESTRICT;
 
-	 	//Item root;
+		//Item root;
 
 	};
 }

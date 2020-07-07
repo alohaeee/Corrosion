@@ -18,7 +18,7 @@ namespace corrosion
 		else
 		{
 			session->info("Possibly that some original types of Rust are not implemented");
-			session->criticalSpan(lo,"Looking for type but find:");
+			session->criticalSpan(lo,"Looking for type, but find:");
 		}
 		return MakePointer<Ty>(lo.to(prevToken.span),std::move(kind));
 	}

@@ -12,7 +12,7 @@ int main()
 	Interner::fresh();
 
 	auto parseSession = std::make_shared<ParseSession>();
-	parseSession->appendFile(SourceFile("test_file.txt", "let a = 3+11;"));
+	parseSession->appendFile(SourceFile("test_file.txt", "let a = (3+11u16+(23+4)*1)*2; \n { 1+1;}"));
 
 	try
 	{
@@ -21,16 +21,24 @@ int main()
 		auto stream = treeReader.parseAllTokenTrees();
 
 		Parser parser{ parseSession, std::move(stream) };
-		auto stmt = parser.parseFullStmt();
-		if(stmt)
+
+		while(true)
 		{
-			stmt->printer(0);
+			if(auto stmt = parser.parseFullStmt();stmt)
+			{
+				stmt->printer(0);
+			}
+			else
+			{
+				break;
+			}
+
+
 		}
 	}
 	catch(CriticalException& e)
 	{
 		CR_LOG_TRACE(e.what());
-
 	}
 
 //

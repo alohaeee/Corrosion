@@ -9,6 +9,7 @@ namespace corrosion
 	{
 		return !e->requiresSemiToBeStmt();
 	}
+
 	AnonConst Parser::parseAnonConstExpr()
 	{
 		return AnonConst{DUMMY_NODE_ID,parseExpr()};
@@ -221,10 +222,6 @@ namespace corrosion
 	Pointer<Expr> Parser::parseBottomExpr()
 	{
 		auto lo = token.span;
-//		if(token.kind == TokenKind::Literal)
-//		{
-//			//this->parseLitExpr();
-//		}
 		if(check(TokenKind::OpenDelim,data::Delim{data::Delim::Paren}))
 		{
 			return this->parseTupleParensExpr();
@@ -235,74 +232,73 @@ namespace corrosion
 		}
 		else if(check(TokenKind::BinOp,data::BinOp{data::BinOp::Or})||check(TokenKind::OrOr))
 		{
-			session->criticalSpan(token.span, "Maybe start of Closure expr, but we can parse it now");
+			session->criticalSpan(token.span, "maybe start of Closure expr, but we can parse it now");
 			return nullptr;
 		}
 		else if(check(TokenKind::Lt) || check(TokenKind::BinOp, data::BinOp{data::BinOp::Shl}))
 		{
-			session->criticalSpan(token.span, "Maybe start of QPath expr, but we can parse it now");
+			session->criticalSpan(token.span, "maybe start of QPath expr, but we can parse it now");
 			return nullptr;
 		}
 		else if(check(TokenKind::OpenDelim,data::Delim{data::Delim::Bracket}))
 		{
-			//this->parseArrayOrRepeatExpr();
+			return this->parseArrayOrRepeatExpr();
 		}
-//		else if(eat_lit())
-//		{
-//			this->parseQPath();
-//		}
 		else if(checkPath())
 		{
-			//this->parseStartPathExpr();
+			return this->parseStartPathExpr();
 		}
-//		else if(checkKeyword(kw::Move) || checkKeyword(kw::Static))
-//		{
-//			//this->parseClosureExpr();
-//		}
+		else if(checkKeyword(kw::Move) || checkKeyword(kw::Static))
+		{
+			session->criticalSpan(token.span, "maybe start of Closure expr, but we can parse it now");
+			return nullptr;
+		}
 		else if(eatKeyword(kw::If))
 		{
-			//this->parseIfExpr();
+			return this->parseIfExpr();
 		}
 		else if(eatKeyword(kw::For))
 		{
-			//this->parseForExpr();
+			return this->parseForExpr(std::nullopt,lo);
 		}
 		else if(eatKeyword(kw::While))
 		{
-			//this->parseWhileExpr();
+			return this->parseWhileExpr(std::nullopt,lo);
 		}
 		else if(auto label = eatLabel(); label)
 		{
-			//this->parseLabelExpr();
+			return this->parseLabeledExpr(label.value());
 		}
 		else if(eatKeyword(kw::Loop))
 		{
-			//this->parseLoopExpr();
+			return this->parseLoopExpr(std::nullopt,lo);
 		}
 		else if(eatKeyword(kw::Continue))
 		{
 			auto cont = ExprKind::Continue{eatLabel()};
-			//
+			return MakePointer<Expr>(lo.to(prevToken.span), std::move(cont));
 		}
 		else if(eatKeyword(kw::Return))
 		{
-			//this->parseReturnExpr();
+			return this->parseReturnExpr();
 		}
 		else if(eatKeyword(kw::Break))
 		{
-			//this->parseBreakExpr();
+			return this->parseBreakExpr();
 		}
-//		else if(eatKeyword(kw::Let))
-//		{
-//			//this->parseLetExpr();
-//		}
+		else if(eatKeyword(kw::Let))
+		{
+			session->criticalSpan(token.span, "maybe start of Let expr, but we can parse it now");
+			//this->parseLetExpr();
+		}
 		else if (token.kind == TokenKind::Literal)
 		{
 			return this->parseLitExpr();
 		}
 		else
 		{
-			session->criticalSpan(token.span, "BUG: Rich the bottom in parsing Expr");
+			session->errorSpan(lo, "here must be expression");
+			return MakePointer<Expr>(lo, ExprKind::Error{});
 		}
 		return nullptr;
 
@@ -310,22 +306,33 @@ namespace corrosion
 	Pointer<Expr> Parser::parseLitExpr()
 	{
 		auto lo = token.span;
-		auto lit = Literal::fromToken(token);
-		this->shift();
-		return MakePointer<Expr>(lo,std::move(lit));
+		try
+		{
+			auto lit = Literal::fromToken(token);
+			this->shift();
+			return MakePointer<Expr>(lo,std::move(lit));
+		}
+		catch(LiteralError& err)
+		{
+			session->errorSpan(lo,err.toString());
+			return MakePointer<Expr>(lo,ExprKind::Error{});
+		}
 	}
 	Pointer<Expr> Parser::parseCondExpr()
 	{
-		return parseAssocExprWith(0,nullptr);
+		auto cond = parseExprRes(Restriction::NO_STRUCT_LITERAL);
+		return cond;
 	}
-	Pointer<Expr> Parser::parseWhileExpr()
+	Pointer<Expr> Parser::parseWhileExpr(std::optional<Label> optLabel, Span lo)
 	{
 		auto cond = parseCondExpr();
-		return nullptr;
+		auto block = parseBlockCommon();
+		return MakePointer<Expr>(lo.to(prevToken.span), ExprKind::While{cond,block,optLabel});
 	}
 
-	Pointer<Expr> Parser::parseForExpr()
+	Pointer<Expr> Parser::parseForExpr(std::optional<Label> optLabel, Span lo)
 	{
+		session->criticalSpan(token.span, "maybe start of For expr, but we can parse it now");
 		return corrosion::Pointer<Expr>();
 	}
 	Pointer<Expr> Parser::parseLitMaybeMinus()
@@ -412,13 +419,17 @@ namespace corrosion
 		auto lo = token.span;
 		expect(TokenKind::OpenDelim,data::Delim{data::Delim::Paren});
 		std::vector<Pointer<Expr>> exprs;
-		while(!eat(TokenKind::CloseDelim,data::Delim{data::Delim::Paren}))
+		while(true)
 		{
 			auto e = parseExpr();
 			exprs.push_back(e);
 			if(eat(TokenKind::Comma))
 			{
 				continue;
+			}
+			else if(eat(TokenKind::CloseDelim,data::Delim{data::Delim::Paren}))
+			{
+				break;
 			}
 			else
 			{
@@ -436,6 +447,185 @@ namespace corrosion
 			session->errorSpan(lo.to(prevToken.span), "Tuple expressions are not allowed");
 		}
 		return MakePointer<Expr>(lo.to(prevToken.span), std::move(kind));
+	}
+	Pointer<Expr> Parser::parseArrayOrRepeatExpr()
+	{
+		auto lo = token.span;
+		Expr::KindUnion kind;
+
+		expect(TokenKind::OpenDelim,data::Delim{data::Delim::Bracket});
+
+		if(eat(TokenKind::OpenDelim,data::Delim{data::Delim::Bracket}))
+		{
+			//empty vector
+			kind = ExprKind::Array{};
+		}
+		else
+		{
+			// Non empty vector
+			auto first_expr = parseExpr();
+			if(eat(TokenKind::Semi))
+			{
+				// Repeating array syntax: `[ 0; 512 ]`
+				auto count = parseAnonConstExpr();
+				expect(TokenKind::CloseDelim,data::Delim{data::Delim::Bracket});
+				kind = ExprKind::Error();
+				session->errorSpan(lo.to(prevToken.span), "repeat expresion is not allowed for now");
+			}
+			else if(eat(TokenKind::Comma))
+			{
+				// Vector with two or more elements.
+				std::vector<Pointer<Expr>> exprs{first_expr};
+				while(true)
+				{
+					auto e = parseExpr();
+					exprs.push_back(e);
+					if(eat(TokenKind::Comma))
+					{
+						continue;
+					}
+					else if(eat(TokenKind::CloseDelim,data::Delim{data::Delim::Bracket}))
+					{
+						break;
+					}
+					else
+					{
+						session->criticalSpan(token.span, "waited for comma or close bracket '}', but found:");
+					}
+				}
+				kind = ExprKind::Array{exprs};
+			}
+			else
+			{
+				// Vector with one element
+				expect(TokenKind::CloseDelim,data::Delim{data::Delim::Bracket});
+				kind = ExprKind::Array{std::vector<Pointer<Expr>>{first_expr}};
+			}
+		}
+
+		return MakePointer<Expr>(lo.to(prevToken.span), std::move(kind));
+	}
+	Pointer<Expr> Parser::parseStartPathExpr()
+	{
+		auto lo = token.span;
+		auto path = parsePath();
+
+		return MakePointer<Expr>(lo.to(prevToken.span),ExprKind::Path{std::nullopt,path});
+	}
+	Pointer<Expr> Parser::parseIfExpr()
+	{
+		auto lo = token.span;
+		auto cond = parseCondExpr();
+		Pointer<Block> block;
+
+		if(!cond->returns() || eatKeyword(kw::Else))
+		{
+			session->errorSpan(cond->span, "missing condition for `if` expression");
+		}
+		else
+		{
+			auto not_block = !(token.kind == TokenKind::OpenDelim
+				&& token.data == TokenData{data::Delim{data::Delim::Brace}});
+
+			if(not_block)
+			{
+				session->errorSpan(token.span, "this `if` expression has a condition, but no block");
+			}
+			else
+			{
+				block = parseBlockCommon();
+			}
+		}
+		Pointer<Expr> elseExpr;
+		if(eatKeyword(kw::Else))
+		{
+			elseExpr = parseElseExpr();
+		}
+		return MakePointer<Expr>(lo.to(prevToken.span),ExprKind::If{cond,block,elseExpr});
+	}
+	/// Parses an `else { ... }` expression (`else` token already eaten).
+	Pointer<Expr> Parser::parseElseExpr()
+	{
+		// else span
+		auto ctx_span = prevToken.span;
+		Pointer<Expr> expr;
+		if(eatKeyword(kw::If))
+		{
+			expr = parseIfExpr();
+		}
+		else
+		{
+			auto block = parseBlockCommon();
+			expr = MakePointer<Expr>(block->span, ExprKind::Block{block,std::nullopt});
+		}
+		return expr;
+	}
+	Pointer<Expr> Parser::parseLoopExpr(std::optional<Label> optLabel, Span lo)
+	{
+		auto block = parseBlockCommon();
+		return MakePointer<Expr>(lo.to(prevToken.span), ExprKind::Loop{block,optLabel});
+	}
+	/// Parse `'label: $expr`. The label is already parsed.
+	Pointer<Expr> Parser::parseLabeledExpr(Label label)
+	{
+		auto lo = label.ident.span();
+		Pointer<Expr> expr;
+		if(!eat(TokenKind::Colon))
+		{
+			session->errorSpan(prevToken.span, "labeled expr must be followed by colon");
+		}
+		if(eatKeyword(kw::While))
+		{
+			expr = parseWhileExpr(label,lo);
+		}
+		else if(eatKeyword(kw::For))
+		{
+			expr = parseForExpr(label,lo);
+		}
+		else if(eatKeyword(kw::Loop))
+		{
+			expr = parseLoopExpr(label,lo);
+		}
+		else if(check(TokenKind::OpenDelim,data::Delim{data::Delim::Brace}))
+		{
+			expr = parseBlockExpr(label,lo);
+		}
+		else
+		{
+			session->errorSpan(token.span,"expected `while`, `for`, `loop` or `{` after a label");
+			// Continue as an expression in an effort to recover on `'label: non_block_expr`.
+			expr = parseExpr();
+		}
+		return expr;
+	}
+	/// Parse `"return" expr?`.
+	Pointer<Expr> Parser::parseReturnExpr()
+	{
+		auto lo = prevToken.span;
+		Pointer<Expr> opt_expr;
+		if(token.canBeginExpr())
+		{
+			opt_expr = parseExpr();
+		}
+		auto kind = ExprKind::Return{opt_expr};
+		return MakePointer<Expr>(lo.to(prevToken.span), std::move(kind));
+	}
+	Pointer<Expr> Parser::parseBreakExpr()
+	{
+		auto lo = prevToken.span;
+		auto label = eatLabel();
+		Pointer<Expr> kind;
+		auto not_block = !(token.kind == TokenKind::OpenDelim
+			&& token.data == TokenData{data::Delim{data::Delim::Brace}});
+
+		if(not_block || (this->restrictions & Restriction::NO_STRUCT_LITERAL) ==  Restriction::NO_STRUCT_LITERAL)
+		{
+			if(token.canBeginExpr())
+			{
+				kind = parseExpr();
+			}
+		}
+		return MakePointer<Expr>(lo.to(prevToken.span), ExprKind::Break{label,kind});
 	}
 
 }

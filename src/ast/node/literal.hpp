@@ -22,9 +22,9 @@ namespace corrosion
 			switch (m_errorKind)
 			{
 			case InvalidSuffix:
-				return "Invalid suffix";
+				return "invalid suffix";
 			case NotImplemented:
-				return "Symbol was reserved, but for now is not implemented";
+				return "symbol was reserved, but for now is not implemented";
 			default:
 				return "";
 			}
@@ -304,6 +304,7 @@ namespace corrosion
 			}
 			if (suffix)
 			{
+
 				switch (suffix->data())
 				{
 				case sym::ISize:

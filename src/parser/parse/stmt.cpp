@@ -37,7 +37,8 @@ namespace corrosion
 		{
 			kind = StmtKind::Empty{};
 		}
-		else if(token.kind !=TokenKind::CloseDelim && token.data != TokenData(data::Delim{data::Delim::Brace}))
+		else if(!(token.kind ==TokenKind::CloseDelim && token.data == TokenData(data::Delim{data::Delim::Brace}))&&
+			token.kind!=TokenKind::Eof)
 		{
 			auto e = parseExprRes(Restriction::STMT_EXPR);
 			kind = StmtKind::Expr{e};
@@ -52,36 +53,43 @@ namespace corrosion
 	{
 		auto stmt = parseStmtWithoutRecovery();
 		bool eatSemi = true;
-		std::visit([&eatSemi,this,stmt](auto&& arg)
+		if(stmt)
 		{
-			using T = std::decay_t<decltype(arg)>;
-			if constexpr(std::is_same_v<T,StmtKind::Expr>)
+			std::visit([&eatSemi, this, stmt](auto&& arg)
 			{
-				if(arg.expr->requiresSemiToBeStmt() && token.kind != TokenKind::Eof)
-				{
-					if(check(TokenKind::Semi))
-					{
-						session->errorSpan(token.span,"Expected semicolon, but found:");
-					}
-				}
-			}
-			else if constexpr(std::is_same_v<T,StmtKind::Local>)
-			{
-				expect(TokenKind::Semi);
-				eatSemi = false;
-			}
-			else if constexpr(std::is_same_v<T,StmtKind::Empty>)
-			{
-				eatSemi = false;
-			}
+			  using T = std::decay_t<decltype(arg)>;
+			  if constexpr(std::is_same_v<T, StmtKind::Expr>)
+			  {
+				  if (arg.expr->requiresSemiToBeStmt() && token.kind != TokenKind::Eof)
+				  {
+					  if (!check(TokenKind::Semi))
+					  {
+						  session->errorSpan(token.span, "expected semicolon");
+					  }
+				  }
+			  }
+			  else if constexpr(std::is_same_v<T, StmtKind::Local>)
+			  {
+				  expect(TokenKind::Semi);
+				  eatSemi = false;
+			  }
+			  else if constexpr(std::is_same_v<T, StmtKind::Empty>)
+			  {
+				  eatSemi = false;
+			  }
 
-		},stmt->kind);
+			}, stmt->kind);
+		}
 
 		if(eatSemi && eat(TokenKind::Semi))
 		{
 			stmt->addTrailingSemicolon();
 		}
-		stmt->span = stmt->span.to(prevToken.span);
+		if(stmt)
+		{
+			stmt->span = stmt->span.to(prevToken.span);
+
+		}
 
 		return stmt;
 	}
@@ -106,13 +114,15 @@ namespace corrosion
 		auto lo = token.span;
 		if(!eat(TokenKind::OpenDelim, data::Delim{data::Delim::Brace}))
 		{
-			session->errorSpan(token.span, "Expected to meet {, but found:");
+			session->errorSpan(token.span, "expected to meet {");
+			return nullptr;
 		}
 		Pointer<Block> block = MakePointer<Block>();
 		while(!eat(TokenKind::CloseDelim, data::Delim{data::Delim::Brace}))
 		{
 			if(token.kind ==TokenKind::Eof)
 			{
+				session->errorSpan(token.span, "expected to meet }");
 				break;
 			}
 			auto stmt = parseFullStmt();

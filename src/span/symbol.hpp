@@ -114,13 +114,14 @@ namespace corrosion
 	 public:
 		[[nodiscard]] static Symbol intern(std::string_view view)
 		{
-			if (auto iter = s_names.find(view); iter != s_names.end())
+			std::string str(view);
+			if (auto iter = s_names.find(str); iter != s_names.end())
 			{
 				return iter->second;
 			}
 
-			s_strings.push_back(std::string(view));
-			auto inserted = s_names.emplace(s_strings.back(), Symbol{ s_strings.size() - 1});
+			auto inserted = s_names.emplace(str, Symbol{ s_strings.size() });
+			s_strings.push_back(inserted.first->first);
 			return inserted.first->second;
 		}
 		[[nodiscard]] inline static std::string_view get(Symbol symbol)
@@ -135,8 +136,8 @@ namespace corrosion
 
 			for (auto &&[str, sym]:data)
 			{
-				s_strings.push_back(str);
-				s_names.emplace(s_strings.back(), sym);
+				auto inserted = s_names.emplace(std::move(str), sym);
+				s_strings.push_back(inserted.first->first);
 			}
 		}
 		static void prefillLazy(std::vector<std::pair<std::string, Symbol>>&& data)
@@ -160,8 +161,8 @@ namespace corrosion
 		}
 
 	 private:
-		inline static std::unordered_map<std::string_view, Symbol> s_names{};
-		inline static std::vector<std::string> s_strings{};
+		inline static std::unordered_map<std::string, Symbol> s_names{};
+		inline static std::vector<std::string_view> s_strings{};
 	};
 
 }
