@@ -66,6 +66,8 @@ namespace corrosion
 		NodeId id;
 		Span span;
 		bool isPlaceholder;
+
+		void printer(std::size_t level);
 	};
 	struct FnHeader
 	{
@@ -75,6 +77,8 @@ namespace corrosion
 	{
 		std::vector<Param> param;
 		Pointer<Ty> returnType;
+
+		void printer(std::size_t level);
 	};
 	struct FnSig
 	{
@@ -89,7 +93,7 @@ namespace corrosion
 		struct Const
 		{
 			Pointer<Ty> type;
-			std::optional<Pointer<Expr>> expr;
+			Pointer<Expr> expr;
 		};
 		/// A function declaration (`fn`).
 		///
@@ -97,7 +101,7 @@ namespace corrosion
 		struct Fn
 		{
 			FnSig sig;
-			std::optional<Pointer<Block>> block;
+			Pointer<Block> block;
 		};
 	};
 	struct Item
@@ -111,45 +115,7 @@ namespace corrosion
 		/// It might be a dummy name in case of anonymous items.
 		Ident ident;
 
-//		std::string printer(std::unique_ptr<Printer>& prevPrinter)
-//		{
-//			if(ETO IF)
-//			{
-//				"node If id = 1 (2,3)"
-//	""				cond
-//					{
-//						block
-//					}
-//				prevPrinter.next = std::make_unique<Printer>()
-//				    prevPrinter.child = printer()
-//				printer(prevPrinter.next);
-//			}
-//		}
-//		struct Printer
-//		{
-//			std::string content;
-//			std::unique_ptr<Printer> next;
-//			std::unique_ptr<Printer> child;
-//			static inline std::size_t curLevel = 0;
-//
-//			Printer(std::string label, Span span, NodeId id)
-//			{
-//				label = fmt::format("Node {} id = ({},{})", label, (id == DUMMY_NODE_ID ? "DUMMY" : std::to_string(id)),
-//					span.lo(),span.hi());
-//			}
-//			std::string print(std::size_t level)
-//			{
-//				if(child)
-//				{
-//					print(level+1);
-//				}
-//				if(next)
-//				{
-//					print(level);
-//				}
-				//
-//			}
-		//};
+		void printer(std::size_t level);
 	};
 }
 
