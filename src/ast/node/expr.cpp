@@ -300,6 +300,17 @@ namespace corrosion
 				  astLogPrint(s.ident.name().toString(), level + 3);
 			  }
 		  }
+		  else if constexpr (std::is_same_v<T, ExprKind::FunctionCall>)
+		  {
+			  astLogPrint("type: FunctionCall", level + 1);
+			  astLogPrint("expr:", level+1);
+			  arg.func->printer(level+2);
+			  astLogPrint("args:", level + 1);
+			  for (auto& a: arg.args)
+			  {
+				  a->printer(level+2);
+			  }
+		  }
 		  else if constexpr (std::is_same_v<T, ExprKind::Error>)
 		  {
 			  astLogPrint("type: Error", level + 1);
