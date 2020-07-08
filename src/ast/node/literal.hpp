@@ -12,7 +12,8 @@ namespace corrosion
 		enum Kind
 		{
 			InvalidSuffix,
-			NotImplemented
+			NotImplemented,
+			StringAndChar,
 		};
 		LiteralError(Kind errorKind) : m_errorKind{ errorKind }
 		{
@@ -25,6 +26,8 @@ namespace corrosion
 				return "invalid suffix";
 			case NotImplemented:
 				return "symbol was reserved, but for now is not implemented";
+			case StringAndChar:
+				return "string and char are not implemented yet";
 			default:
 				return "";
 			}
@@ -253,9 +256,9 @@ namespace corrosion
 			case ast::data::Literal::Float:
 				return filterFloatLiteral(lit.symbol, lit.suffix);
 			case ast::data::Literal::Char:
-				throw LiteralError{ LiteralError::NotImplemented };
+				throw LiteralError{ LiteralError::StringAndChar };
 			case ast::data::Literal::Str:
-				throw LiteralError{ LiteralError::NotImplemented };
+				throw LiteralError{ LiteralError::StringAndChar };
 			case ast::data::Literal::Bool:
 				assert(lit.symbol.isBoolLiteral());
 				return LiteralKind::Boolean{ lit.symbol == kw::True };

@@ -254,7 +254,7 @@ namespace corrosion
 				  }
 				  if (arg.suffixStart != m_tokenizer.consumed())
 				  {
-					  parseSession->errorSpan(spanToken(), "suffixes on a string literal are invalid");
+					  parseSession->errorSpan(Span(arg.suffixStart,m_tokenizer.consumed()), "suffixes on a string literal are invalid");
 					  suf = Symbol::intern(strFrom(arg.suffixStart));
 				  }
 				  return { ast::data::Literal::Char, content, suf };
@@ -269,7 +269,7 @@ namespace corrosion
 				  }
 				  if (arg.suffixStart != m_tokenizer.consumed())
 				  {
-					  parseSession->errorSpan(spanToken(), "suffixes on a string literal are invalid");
+					  parseSession->errorSpan(Span(arg.suffixStart,m_tokenizer.consumed()), "suffixes on a string literal are invalid");
 					  suf = Symbol::intern(strFrom(arg.suffixStart));
 				  }
 				  return { ast::data::Literal::Str, content, suf };

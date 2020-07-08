@@ -315,6 +315,7 @@ namespace corrosion
 		catch(LiteralError& err)
 		{
 			session->errorSpan(lo,err.toString());
+			this->shift();
 			return MakePointer<Expr>(lo,ExprKind::Error{});
 		}
 	}
