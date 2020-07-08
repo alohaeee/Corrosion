@@ -77,8 +77,7 @@ namespace corrosion
 					auto delim = tree.first.getDelimited();
 					this->stack.push_back(this->frame);
 					this->frame = TokenCursorFrame{ delim.kind, std::move(delim.span),
-															std::move(delim.stream) };
-
+													std::move(delim.stream) };
 
 				}
 			}
@@ -110,7 +109,7 @@ namespace corrosion
 			}
 			this->prevToken = std::move(this->token);
 			this->token = nextTok;
-			CR_LOG_TRACE(token.printable());
+			CR_DEBUG_LOG_TRACE("token:{}", token.printable());
 
 			this->expectedTokens.clear();
 		}
@@ -225,21 +224,33 @@ namespace corrosion
 			return Ident{};
 		}
 
+		Const parseConstness()
+		{
+			if(eatKeyword(kw::Const))
+			{
+				return Const{prevToken.span,Const::Yes};
+			}
+			else
+			{
+				return Const{std::nullopt, Const::No};
+			}
+		};
+
 		void expect(TokenKind kind, TokenData&& data = data::Empty{})
 		{
-			if (expectedTokens.empty())
+			if (check(kind,std::move(data)))
 			{
-				if (token.kind == kind && data == token.data)
-				{
-					this->shift();
-					return;
-				}
+				this->shift();
+				return;
+			}
+			if (expectedTokens.size() == 1)
+			{
 				Span span = token.span;
-				if(token.kind == TokenKind::Eof)
+				if (token.kind == TokenKind::Eof)
 				{
 					span = prevToken.span;
 				}
-				session->errorSpan(span,
+				session->criticalSpan(span,
 					fmt::format("expected token: {}", Token{ kind, {}, data }.printable()));
 			}
 			else
@@ -247,12 +258,12 @@ namespace corrosion
 				std::string msg;
 				for (auto &&[kind, data]: expectedTokens)
 				{
-					msg += (fmt::format("({}) or ", Token{ kind, {}, data }.printable()));
+					msg += (fmt::format("'{}' or ", Token{ kind, {}, data }.printable()));
 				}
 				msg.pop_back();
 				msg.pop_back();
 				msg.pop_back();
-				session->errorSpan(token.span, fmt::format("expected: {}", msg));
+				session->criticalSpan(token.span, fmt::format("expected: {}", msg));
 			}
 		}
 
@@ -277,11 +288,20 @@ namespace corrosion
 			return result;
 		}
 
-//
-//		Pointer<Expr> parseBlock();
-//		Pointer<Expr> parseBlockLine();
-//
-//		Pointer<Expr> parseWhileExpr();
+		inline void printAst(std::vector<Stmt>& stmts)
+		{
+#ifdef CR_ENABLE_LOG_AST
+			CR_LOG_AST("![AST in file: {}]", session->file().path().string());
+			for(auto&stmt: stmts)
+			{
+				stmt.printer(0);
+			}
+			Log::getAstLogger()->flush();
+#endif
+		}
+
+		/* EXPR */
+		bool exprIsComplete(Pointer<Expr>& e);
 		Pointer<Expr> parseExpr();
 		inline Pointer<Expr> parseExprRes(Restriction res);
 		inline Pointer<Expr> parseAssocExpr();
@@ -315,24 +335,44 @@ namespace corrosion
 		Pointer<Expr> parseIndexExpr(Pointer<Expr>& e, Span lo);
 		AnonConst parseAnonConstExpr();
 
+		/* STMT */
 		Pointer<Block> parseBlockCommon();
-
 		std::optional<Stmt> parseStmtWithoutRecovery();
 		Pointer<Local> parseLocal();
 		std::optional<Stmt> parseFullStmt();
 
+		/* PATTERNS */
 		inline Pointer<Pat> parsePat();
 		Pointer<Pat> parseTopPat(bool gateOr);
-		Pointer<Pat> parsePathWithOr(bool gateOr);
+		Pointer<Pat> parsePatWithOr(bool gateOr);
 		Pointer<Pat> parsePatWithRangePat(bool allowRangePat);
 		PatKind::Ref parsePatDeref();
 		PatKind::Paren parsePatParen();
 		PatKind::Ident parsePatIdentRef();
 		PatKind::Ident parsePatIdent(BindingMode bindingMode);
+		Pointer<Pat> parseFnParamPat();
 
+
+		/* Types */
 		Pointer<Ty> parseTy();
 		Ty::KindUnion parseArrayTy();
+		Pointer<Ty> parseRetTy();
 
+		/* Items */
+		Pointer<Item> parseItemCommon();
+		std::tuple<Ident,Pointer<Ty>, Pointer<Expr>> parseItemGlobal(std::optional<Mutability> m);
+		std::optional<ItemInfo> parseItemKind(Span lo);
+		bool checkFnFrontMatter();
+		std::tuple<Ident,FnSig,Generics,Pointer<Block>> parseFn();
+		Pointer<FnDecl> parseFnDecl();
+		std::vector<Param> parseFnParams();
+		Param parseParamGeneral(bool firstParam);
+		std::optional<Param> parseSelfParam();
+		Pointer<Block> parseFnBody();
+
+
+
+		/* Path */
 		Path parsePath();
 		void parsePathSegments(std::vector<PathSegment>& segments);
 		Ident parsePathSegmentIdent();

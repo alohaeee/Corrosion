@@ -45,12 +45,13 @@ endfunction()
 # Tests
 #
 
-SETUP_BASIC_TEST(LEXER_BENCHMARK lexer/benchmark.cpp)
-SETUP_BASIC_TEST(LEXER_TEST lexer/string_reader.cpp)
+#SETUP_BASIC_TEST(LEXER_BENCHMARK lexer/benchmark.cpp)
+#SETUP_BASIC_TEST(LEXER_TEST lexer/string_reader.cpp)
 
 #
 # Install Rust src files.
 #
+
 if(NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/rs")
     file(INSTALL rs/ DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/rs)
 endif()

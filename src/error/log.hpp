@@ -7,7 +7,6 @@
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "spdlog/sinks/basic_file_sink.h"
 
-
 #ifdef CR_ENABLE_DEBUG_LOG_ALL
 #define CR_ENABLE_DEBUG_LOG
 #define CR_ENABLE_LOG_TOKENIZER
@@ -27,12 +26,16 @@ namespace corrosion
 			s_parseLogger->set_pattern("%^%l:%$ %v");
 
 #ifdef CR_ENABLE_DEBUG_LOG
-			s_debugLogger = spdlog::stdout_color_mt("Debug");
+			s_parseLogger->info("Tokenizer will makes log output into 'logs/tokenizer.txt'");
+			FileLoader::create(std::filesystem::current_path()/"logs"/"debug.txt");
+			s_debugLogger = spdlog::basic_logger_mt("Debug",
+				(std::filesystem::current_path()/"logs"/"debug.txt").string());
 			s_debugLogger->set_level(spdlog::level::trace);
-			s_debugLogger->set_pattern("%^[%T] %n:%$ %v");
+			s_debugLogger->set_pattern("%^[%T] <%n>%$ %v");
 #endif
 
 #ifdef CR_ENABLE_LOG_TOKENIZER
+			s_parseLogger->info("Tokenizer will makes log output into 'logs/tokenizer.txt'");
 			FileLoader::create(std::filesystem::current_path()/"logs"/"tokenizer.txt");
 			s_tokenizerLogger = spdlog::basic_logger_mt("Tokenizer",
 				(std::filesystem::current_path()/"logs"/"tokenizer.txt").string());
@@ -40,6 +43,7 @@ namespace corrosion
 			s_tokenizerLogger->set_pattern("%^[%T] [%n] %v%$");
 #endif
 #ifdef CR_ENABLE_LOG_STRREADER
+			s_parseLogger->info("StringReader and TreeReader will makes log output into 'logs/string_reader.txt'");
 			FileLoader::create(std::filesystem::current_path()/"logs"/"string_reader.txt");
 			s_stringReaderLogger = spdlog::basic_logger_mt("StringReader",
 				(std::filesystem::current_path()/"logs"/"string_reader.txt").string());
@@ -47,6 +51,7 @@ namespace corrosion
 			s_stringReaderLogger->set_pattern("%v%$");
 #endif
 #ifdef CR_ENABLE_LOG_AST
+			s_parseLogger->info("Parser will makes log output into 'logs/ast.txt'");
 			FileLoader::create(std::filesystem::current_path()/"logs"/"ast.txt");
 			s_astLogger = spdlog::basic_logger_mt("AST",
 				(std::filesystem::current_path()/"logs"/"ast.txt").string());
@@ -94,7 +99,8 @@ namespace corrosion
 #define CR_DEBUG_LOG_ERROR(...) ::corrosion::Log::getDebugLogger()->error(__VA_ARGS__)
 #define CR_DEBUG_LOG_WARN(...) ::corrosion::Log::getDebugLogger()->warn(__VA_ARGS__)
 #define CR_DEBUG_LOG_INFO(...) ::corrosion::Log::getDebugLogger()->info(__VA_ARGS__)
-#define CR_DEBUG_LOG_TRACE(...) ::corrosion::Log::getDebugLogger()->trace(__VA_ARGS__)
+#define CR_DEBUG_LOG_TRACE(...) ::corrosion::Log::getDebugLogger()->trace(__VA_ARGS__); \
+	::corrosion::Log::getDebugLogger()->flush()
 #define CR_DEBUG_LOG_CRITICAL(...) ::corrosion::Log::getDebugLogger()->critical(__VA_ARGS__)
 #else
 #define CR_DEBUG_LOG_ERROR(...)

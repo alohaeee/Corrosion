@@ -25,9 +25,10 @@ void corrosion::Item::printer(std::size_t level)
 		if constexpr(std::is_same_v<T, ItemKind::Const>)
 		{
 			astLogPrint("type: Const",level+1);
+			astLogPrint("type:", level+1);
 			if(arg.type)
 			{
-				arg.type->printer(level+1);
+				arg.type->printer(level+2);
 			}
 			else
 			{
@@ -39,8 +40,10 @@ void corrosion::Item::printer(std::size_t level)
 				arg.expr->printer(level+2);
 			}
 		}
-		if constexpr(std::is_same_v<T, ItemKind::Fn>)
+		else if constexpr(std::is_same_v<T, ItemKind::Fn>)
 		{
+
+			astLogPrint("type: Fn",level+1);
 			astLogPrint("sig:", level+1);
 			arg.sig.decl->printer(level+2);
 			if(arg.block)
@@ -53,12 +56,36 @@ void corrosion::Item::printer(std::size_t level)
 				astLogPrint("BUG: There must be block", level+2);
 			}
 		}
+		else if constexpr(std::is_same_v<T, ItemKind::Static>)
+		{
+			astLogPrint("type: Static",level+1);
+			if(arg.mut == Mutability::Mut)
+			{
+				astLogPrint("mutability: mut",level+1);
+			}
+			astLogPrint("type:", level+1);
+			if(arg.type)
+			{
+
+				arg.type->printer(level+2);
+			}
+			else
+			{
+				astLogPrint("BUG: There must be type", level+2);
+			}
+			if(arg.expr)
+			{
+				astLogPrint("expr:", level+1);
+				arg.expr->printer(level+2);
+			}
+		}
 	}, kind);
 }
 
 void corrosion::FnDecl::printer(std::size_t level)
 {
 	astLogPrint("fnDecl:", level);
+	astLogPrint("params:", level+1);
 	for(auto& Param:param)
 	{
 		Param.printer(level+1);

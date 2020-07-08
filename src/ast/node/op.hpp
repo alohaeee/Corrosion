@@ -71,9 +71,9 @@ namespace corrosion
 				return BinOpKind::Shr;
 			}
 		}
-		static std::string toString (BinOpKind op)
+		static std::string toString(BinOpKind op)
 		{
-			switch(op)
+			switch (op)
 			{
 			case BinOpKind::Add:
 				return "+";
@@ -115,6 +115,21 @@ namespace corrosion
 				return "";
 			}
 		}
+		static bool isComprasion(BinOpKind kind)
+		{
+			switch (kind)
+			{
+			case BinOpKind::Lt:
+			case BinOpKind::Le:
+			case BinOpKind::Gt:
+			case BinOpKind::Ge:
+			case BinOpKind::Ne:
+			case BinOpKind::Eq:
+				return true;
+			default:
+				return false;
+			}
+		}
 	};
 
 	enum class UnOpKind
@@ -129,9 +144,9 @@ namespace corrosion
 
 	struct UnOp
 	{
-		static std::string toString (UnOpKind op)
+		static std::string toString(UnOpKind op)
 		{
-			switch(op)
+			switch (op)
 			{
 			case UnOpKind::Deref:
 				return "*";

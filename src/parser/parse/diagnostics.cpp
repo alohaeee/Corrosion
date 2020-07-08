@@ -23,8 +23,12 @@ namespace corrosion
 		assert(outerOp.first.isComparison());
 		if(std::holds_alternative<ExprKind::Binary>(innerOp->kind))
 		{
-			session->errorSpan(outerOp.second, "comparison operators cannot be chained");
-			return true;
+			auto op =std::get<ExprKind::Binary>(innerOp->kind).oper;
+			if(BinOp::isComprasion(op))
+			{
+				session->errorSpan(outerOp.second, "comparison operators cannot be chained");
+				return true;
+			}
 		}
 		return false;
 	}

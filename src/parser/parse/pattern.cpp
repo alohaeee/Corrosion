@@ -8,10 +8,10 @@ namespace corrosion
 	}
 	Pointer<Pat> Parser::parseTopPat(bool gateOr)
 	{
-		auto pat = parsePathWithOr(gateOr);
+		auto pat = parsePatWithOr(gateOr);
 		return pat;
 	}
-	Pointer<Pat> Parser::parsePathWithOr(bool gateOr)
+	Pointer<Pat> Parser::parsePatWithOr(bool gateOr)
 	{
 		auto first_pat = parsePat();
 		if(!check(TokenKind::BinOp,data::BinOp{data::BinOp::Or}) || token.kind != TokenKind::OrOr)
@@ -51,7 +51,8 @@ namespace corrosion
 			}
 			else
 			{
-				session->errorSpan(lo.to(prevToken.span), "Expected pattern but found:");
+				session->warn("possibly that some original patterns of Rust are not implemented");
+				session->criticalSpan(lo.to(prevToken.span), "expected pattern");
 				return nullptr;
 			}
 
@@ -98,6 +99,16 @@ namespace corrosion
 			session->errorSpan(pat->span, "paren pattern must have ')'");
 		}
 		return PatKind::Paren{ pat };
+	}
+
+	Pointer<Pat> Parser::parseFnParamPat()
+	{
+		auto pat = parsePatWithOr(false);
+		if(std::holds_alternative<PatKind::Or>(pat->kind))
+		{
+			session->errorSpan(pat->span,"an or-pattern parameter must be wrapped in parenthesis");
+		}
+		return pat;
 	}
 
 }

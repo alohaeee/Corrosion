@@ -118,6 +118,12 @@ namespace corrosion
 				  astLogPrint("internal:", level + 1);
 				  arg.expr->printer(level + 2);
 			  }
+			  else if constexpr(std::is_same_v<T, StmtKind::Item>)
+			  {
+				  astLogPrint("kind: Item", level + 1);
+				  astLogPrint("internal:", level + 1);
+				  arg.item->printer(level + 2);
+			  }
 			  else if constexpr(std::is_same_v<T, StmtKind::Empty>)
 			  {
 				  astLogPrint("kind: Empty", level + 1);

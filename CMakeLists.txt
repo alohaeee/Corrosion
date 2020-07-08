@@ -45,7 +45,7 @@ add_library(Corrosion_Core
         src/parser/parse/pattern.cpp
         src/parser/parse/ty.cpp
         src/parser/parse/path.cpp
-        src/ast/token_tree.cpp src/ast/node/item.cpp src/ast/node/expr.cpp)
+        src/ast/token_tree.cpp src/ast/node/item.cpp src/ast/node/expr.cpp src/parser/parse/item.cpp)
 add_library(Corrosion::Core ALIAS Corrosion_Core)
 
 target_include_directories(Corrosion_Core PUBLIC "${Corrosion_SOURCE_DIR}/src")

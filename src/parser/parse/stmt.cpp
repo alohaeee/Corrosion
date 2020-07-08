@@ -25,10 +25,10 @@ namespace corrosion
 			session->errorSpan(lo,"write `let` instead of `var` to introduce a new variable");
 			kind = StmtKind::Local{parseLocal()};
 		}
-//		else if(auto item = parseItemCommon(); parseItemCommon())
-//		{
-//
-//		}
+		else if(auto item = parseItemCommon(); item)
+		{
+			kind = StmtKind::Item{item};
+		}
 //		else if(checkPath())
 //		{
 //
@@ -62,7 +62,7 @@ namespace corrosion
 			  {
 				  if (arg.expr->requiresSemiToBeStmt() && token.kind != TokenKind::Eof)
 				  {
-					  if (!check(TokenKind::Semi))
+					  if (!(check(TokenKind::Semi) || check(TokenKind::CloseDelim,data::Delim{data::Delim::Brace})))
 					  {
 						  session->errorSpan(token.span, "expected semicolon");
 					  }

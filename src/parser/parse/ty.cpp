@@ -17,8 +17,8 @@ namespace corrosion
 		}
 		else
 		{
-			session->info("Possibly that some original types of Rust are not implemented");
-			session->criticalSpan(lo,"Looking for type, but find:");
+			session->warn("possibly that some original types of Rust are not implemented");
+			session->criticalSpan(lo,"looking for type, but find");
 		}
 		return MakePointer<Ty>(lo.to(prevToken.span),std::move(kind));
 	}
@@ -32,10 +32,19 @@ namespace corrosion
 		}
 		else
 		{
-			session->errorSpan(ty->span,"Slice type is not supported for now");
+			session->errorSpan(ty->span,"slice type is not supported for now");
 			kind = TyKind::Slice{ty};
 		}
 		expect(TokenKind::CloseDelim,data::Delim{data::Delim::Bracket});
 		return kind;
+	}
+	Pointer<Ty> Parser::parseRetTy()
+	{
+		if(eat(TokenKind::RArrow))
+		{
+			auto type = this->parseTy();
+			return type;
+		}
+		return nullptr;
 	}
 }

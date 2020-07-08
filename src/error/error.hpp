@@ -45,7 +45,7 @@ namespace corrosion
 			CR_LOG_TRACE(msg);
 			return *this;
 		}
-		std::uint32_t errorCount() noexcept
+		std::uint32_t errorCount() const noexcept
 		{
 			return m_errorCount;
 		}

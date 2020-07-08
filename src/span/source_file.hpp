@@ -23,11 +23,11 @@ namespace corrosion
 			}
 			return lines;
 		}
-		SourceFile(const std::filesystem::path path, std::string_view str) : m_path(path), m_src(str)
+		SourceFile(const std::filesystem::path& path, std::string_view str) : m_path(path), m_src(str)
 		{
 			m_lines = analiseSource(m_src);
 		}
-		SourceFile(const std::filesystem::path path) : m_path(path)
+		SourceFile(const std::filesystem::path& path) : m_path(path)
 		{
 			m_src = FileLoader::readFile(m_path);
 			m_lines = analiseSource(m_src);

@@ -497,12 +497,12 @@ namespace corrosion::ast
 		{
 			return kind == TokenKind::Ident;
 		}
-		bool isKeyword(SymType sym)
+		bool isKeyword(SymType sym_l)
 		{
 			if (isIdent())
 			{
-				auto sym = getData<data::Ident>().symbol;
-				if (sym == sym && sym.isKeyword())
+				auto sym_r = getData<data::Ident>().symbol;
+				if (sym_l == sym_r && sym_r.isKeyword())
 				{
 					return true;
 				}
@@ -710,6 +710,21 @@ namespace corrosion::ast
 			return Token(kind, Span::sum(this->span, joint.span), data);
 
 		}
+		bool canBeginLiteralMaybeMinus()
+		{
+			switch(kind)
+			{
+			case TokenKind::Literal:
+				return true;
+			case TokenKind::BinOp:
+				return getData<data::BinOp>().kind == data::BinOp::Minus;
+			case TokenKind::Ident:
+				return getData<data::Ident>().symbol.isBoolLiteral();
+			default:
+				return false;
+			}
+		}
+
 		std::string printable()
 		{
 			switch(kind)

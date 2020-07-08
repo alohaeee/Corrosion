@@ -1,49 +1,36 @@
 //! Log some parts of compiler into "logs" folder.
 #define CR_ENABLE_DEBUG_LOG_ALL
+//! Endless loop
+#define TEST_INF_COMMANDS
 
 #include "corrosion.hpp"
 
-#include "ast/fwd.hpp"
 using namespace corrosion;
 
-int main()
+int main(int argc, char** argv)
 {
-	Log::init();
-	Interner::fresh();
+	auto driver = Driver();
 
-	auto parseSession = std::make_shared<ParseSession>();
-	parseSession->appendFile(SourceFile("test_file.txt", "let a = (3+11u16+(23+4)*1)*2; \n { 1+1;}"));
-
-	try
+#ifndef TEST_INF_COMMANDS
+	driver.mainArg(argc,argv);
+#else
+	CR_LOG_INFO("endless loop is activated\n");
+	CR_LOG_TRACE("for quit type 'q'");
+	std::string line;
+	while (std::getline(std::cin, line))
 	{
-		StringReader reader{ parseSession };
-		TokenTreeReader treeReader{ std::move(reader) };
-		auto stream = treeReader.parseAllTokenTrees();
-
-		Parser parser{ parseSession, std::move(stream) };
-
-		while(true)
+		auto args = ArgReader::splitByWhiteSpaces(line);
+		if(args.size() == 1)
 		{
-			if(auto stmt = parser.parseFullStmt();stmt)
-			{
-				stmt->printer(0);
-			}
-			else
+			if(args.back() == "q")
 			{
 				break;
 			}
-
-
 		}
+		driver.argEmit(args);
+		CR_LOG_TRACE("finished last command; waiting for another one");
+		CR_LOG_TRACE("for quit type 'q'");
 	}
-	catch(CriticalException& e)
-	{
-		CR_LOG_TRACE(e.what());
-	}
-
-//
-//	parser.parseAssocExprWith(0,nullptr);
-
-
-	return 0;
+#endif
+	return driver.ret();
 }

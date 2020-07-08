@@ -1,7 +1,6 @@
 #ifndef CORROSION_SRC_AST_NODE_ITEM_HPP_
 #define CORROSION_SRC_AST_NODE_ITEM_HPP_
 
-
 #include "ast/fwd.hpp"
 
 namespace corrosion
@@ -9,6 +8,10 @@ namespace corrosion
 	struct Label
 	{
 		Ident ident;
+	};
+	struct Generics
+	{
+
 	};
 
 	struct Lifetime
@@ -30,6 +33,16 @@ namespace corrosion
 		{
 			return fromIdent(Ident{ kw::PathRoot, span });
 		}
+	};
+
+	struct Const
+	{
+		std::optional<Span> span;
+		enum
+		{
+			Yes,
+			No
+		} kind;
 	};
 
 	struct Path
@@ -55,17 +68,16 @@ namespace corrosion
 		NodeId id;
 		Span span;
 
-		void printer (std::size_t level);
+		void printer(std::size_t level);
 	};
-
 
 	struct Param
 	{
-		Pointer<Ty> type;
 		Pointer<Pat> pat;
-		NodeId id;
+		Pointer<Ty> type;
 		Span span;
 		bool isPlaceholder;
+		NodeId id;
 
 		void printer(std::size_t level);
 	};
@@ -77,6 +89,10 @@ namespace corrosion
 	{
 		std::vector<Param> param;
 		Pointer<Ty> returnType;
+
+		FnDecl(std::vector<Param>&& param, Pointer<Ty> returnType) : param{param}, returnType{returnType}
+		{
+		}
 
 		void printer(std::size_t level);
 	};
@@ -95,6 +111,15 @@ namespace corrosion
 			Pointer<Ty> type;
 			Pointer<Expr> expr;
 		};
+		/// A static item (`static`).
+		///
+		/// E.g., `static FOO: i32 = 42;` or `static FOO: &'static str = "bar";`.
+		struct Static
+		{
+			Pointer<Ty> type;
+			Mutability mut;
+			Pointer<Expr> expr;
+		};
 		/// A function declaration (`fn`).
 		///
 		/// E.g., `fn foo(bar: usize) -> usize { .. }`.
@@ -103,20 +128,31 @@ namespace corrosion
 			FnSig sig;
 			Pointer<Block> block;
 		};
+		struct Error
+		{
+
+		};
 	};
+
 	struct Item
 	{
 		NodeId id;
 		Span span;
-		using KindUnion = std::variant<ItemKind::Const,ItemKind::Fn>;
+		using KindUnion = std::variant<ItemKind::Const, ItemKind::Fn, ItemKind::Static>;
 		KindUnion kind;
 		//Visibility vis;
 		/// The name of the item.
 		/// It might be a dummy name in case of anonymous items.
 		Ident ident;
 
+		Item(Ident&& ident,Span span, KindUnion&& kind, NodeId id = DUMMY_NODE_ID):
+			ident{ident}, span{span}, kind{kind}, id{id}
+		{
+		}
+
 		void printer(std::size_t level);
 	};
+	using ItemInfo = std::pair<Ident,Item::KindUnion>;
 }
 
 #endif //CORROSION_SRC_AST_NODE_ITEM_HPP_

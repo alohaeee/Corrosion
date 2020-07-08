@@ -11,24 +11,29 @@ namespace corrosion
 		  using T = std::decay_t<decltype(arg)>;
 		  if constexpr(std::is_same_v<T, ExprKind::If>)
 		  {
+			  return false;
 		  }
 		  else if constexpr(std::is_same_v<T, ExprKind::Match>)
 		  {
+			  return false;
 		  }
 		  else if constexpr (std::is_same_v<T, ExprKind::While>)
 		  {
+			  return false;
 		  }
 		  else if constexpr (std::is_same_v<T, ExprKind::Loop>)
 		  {
+			  return false;
 		  }
 		  else if constexpr (std::is_same_v<T, ExprKind::ForLoop>)
 		  {
+			  return false;
 		  }
 		  else
 		  {
-			  return false;
+			  return true;
 		  }
-		  return true;
+		  return false;
 
 		}, kind);
 	}
@@ -274,15 +279,25 @@ namespace corrosion
 			  astLogPrint("type: Block", level + 1);
 			  if (arg.label)
 			  {
-			  	astLogPrint(fmt::format("label: {}", arg.label->ident.name().toString()),level+1);
+				  astLogPrint(fmt::format("label: {}", arg.label->ident.name().toString()), level + 1);
 			  }
-			  if(arg.block)
+			  if (arg.block)
 			  {
-			  	arg.block->printer(level+1);
+				  arg.block->printer(level + 1);
 			  }
 			  else
 			  {
 				  astLogPrint("BUG: There must be internal expr", level + 1);
+			  }
+		  }
+		  else if constexpr (std::is_same_v<T, ExprKind::Path>)
+		  {
+			  astLogPrint("type: Path", level + 1);
+			  astLogPrint("path:", level+1);
+			  astLogPrint("segments:", level + 2);
+			  for (auto& s: arg.path.segments)
+			  {
+				  astLogPrint(s.ident.name().toString(), level + 3);
 			  }
 		  }
 		  else if constexpr (std::is_same_v<T, ExprKind::Error>)

@@ -5,9 +5,9 @@
 namespace corrosion
 {
 	/// Checks if this expression is a successfully parsed statement.
-	bool exprIsComplete(Pointer<Expr> e)
+	bool Parser::exprIsComplete(Pointer<Expr>& e)
 	{
-		return !e->requiresSemiToBeStmt();
+		return !(e->requiresSemiToBeStmt());
 	}
 
 	AnonConst Parser::parseAnonConstExpr()
@@ -378,26 +378,30 @@ namespace corrosion
 					e = parseFnCallExpr(e,lo);
 				}
 			}
+			return e;
 		}
 	}
 	Pointer<Expr> Parser::parseFnCallExpr(Pointer<Expr>& e, Span lo)
 	{
 		assert(eat(TokenKind::OpenDelim,data::Delim{data::Delim::Paren}));
 		std::vector<Pointer<Expr>> exprs;
-		while(true)
+		if(!eat(TokenKind::CloseDelim,data::Delim{data::Delim::Paren}))
 		{
-			auto expr = parseExpr();
-			exprs.push_back(expr);
-			if(eat(TokenKind::CloseDelim,data::Delim{data::Delim::Paren}))
+			while (true)
 			{
+				auto expr = parseExpr();
+				exprs.push_back(expr);
+				if (eat(TokenKind::CloseDelim, data::Delim{ data::Delim::Paren }))
+				{
+					break;
+				}
+				if (eat(TokenKind::Comma))
+				{
+					continue;
+				}
+				session->errorSpan(lo.to(expr->span), "Function call must have close paren ')'");
 				break;
 			}
-			if(eat(TokenKind::Comma))
-			{
-				continue;
-			}
-			session->errorSpan(lo.to(expr->span), "Function call must have close paren ')'");
-			break;
 		}
 		return MakePointer<Expr>(lo.to(prevToken.span),ExprKind::FunctionCall{e,std::move(exprs)});
 
@@ -536,7 +540,7 @@ namespace corrosion
 				block = parseBlockCommon();
 			}
 		}
-		Pointer<Expr> elseExpr;
+		Pointer<Expr> elseExpr = nullptr;
 		if(eatKeyword(kw::Else))
 		{
 			elseExpr = parseElseExpr();
@@ -627,5 +631,6 @@ namespace corrosion
 		}
 		return MakePointer<Expr>(lo.to(prevToken.span), ExprKind::Break{label,kind});
 	}
+
 
 }
