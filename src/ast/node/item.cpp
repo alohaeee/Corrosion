@@ -16,6 +16,7 @@ void corrosion::Item::printer(std::size_t level)
 {
 	auto label = nodeFormatter("Item", id, span);
 	astLogPrint(label, level);
+	astLogPrint(fmt::format("ident: {}",ident.name().toString()),level+1);
 	//level+=1;
 
 	std::visit([this,level](auto&& arg)
@@ -86,9 +87,9 @@ void corrosion::FnDecl::printer(std::size_t level)
 {
 	astLogPrint("fnDecl:", level);
 	astLogPrint("params:", level+1);
-	for(auto& Param:param)
+	for(auto& p:param)
 	{
-		Param.printer(level+1);
+		p.printer(level+2);
 	}
 	if(returnType)
 	{
@@ -102,23 +103,24 @@ void corrosion::Param::printer(std::size_t level)
 	auto label = nodeFormatter("Param", id, span);
 	astLogPrint(label, level);
 	level+=1;
-
+	astLogPrint("ret type:",level);
 	if(type)
 	{
+
 		type->printer(level + 1);
 	}
 	else
 	{
-		astLogPrint("BUG: There must be type", level+2);
+		astLogPrint("BUG: There must be type", level+1);
 	}
 	if(pat)
 	{
-		astLogPrint("pat:", level+1);
-		pat->printer(level + 2);
+		astLogPrint("pat:", level);
+		pat->printer(level + 1);
 	}
 	else
 	{
-		astLogPrint("BUG: There must be pat", level+2);
+		astLogPrint("BUG: There must be pat", level+1);
 	}
 	if(isPlaceholder)
 	{
